@@ -53,6 +53,9 @@ COPY  ./packages/bitcore-node/package-lock.json ./packages/bitcore-node/package-
 COPY  ./packages/bitcore-p2p-cash/package.json ./packages/bitcore-p2p-cash/package.json
 COPY  ./packages/bitcore-p2p-cash/package-lock.json ./packages/bitcore-p2p-cash/package-lock.json
 
+COPY  ./packages/bitcore-p2p-btx/package.json ./packages/bitcore-p2p-btx/package.json
+COPY  ./packages/bitcore-p2p-btx/package-lock.json ./packages/bitcore-p2p-btx/package-lock.json
+
 COPY  ./packages/bitcore-p2p/package.json ./packages/bitcore-p2p/package.json
 COPY  ./packages/bitcore-p2p/package-lock.json ./packages/bitcore-p2p/package-lock.json
 
