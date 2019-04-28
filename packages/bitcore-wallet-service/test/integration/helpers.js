@@ -17,7 +17,8 @@ var config = require('../test-config');
 var Bitcore = require('bitcore-lib');
 var Bitcore_ = {
   btc: Bitcore,
-  bch: require('bitcore-lib-cash')
+  bch: require('bitcore-lib-cash'),
+  btx: require('bitcore-lib-btx'),
 };
 
 var { ChainService } = require('../../ts_build/lib/chain/index');
@@ -194,6 +195,7 @@ helpers._generateCopayersTestData = function() {
     var xpub_44H_0H_0H = Bitcore.HDPublicKey(xpriv_44H_0H_0H);
     var id44btc = Model.Copayer._xPubToCopayerId('btc', xpub_44H_0H_0H.toString());
     var id44bch = Model.Copayer._xPubToCopayerId('bch', xpub_44H_0H_0H.toString());
+    var id44btx = Model.Copayer._xPubToCopayerId('btx', xpub_44H_0H_0H.toString());
 
     var xpriv_1H = xpriv.deriveChild(1, true);
     var xpub_1H = Bitcore.HDPublicKey(xpriv_1H);
@@ -202,6 +204,7 @@ helpers._generateCopayersTestData = function() {
 
     console.log('{id44btc: ', "'" + id44btc + "',");
     console.log('id44bch: ', "'" + id44bch + "',");
+    console.log('id44btx: ', "'" + id44btx + "',");
     console.log('id45: ', "'" + id45 + "',");
     console.log('xPrivKey: ', "'" + xpriv.toString() + "',");
     console.log('xPubKey: ', "'" + xpub.toString() + "',");
@@ -481,7 +484,6 @@ helpers.stubHistory = function(nr, bcHeight, txs) {
     return cb(null, page);
   };
 };
-
 
 helpers.stubCheckData = function(bc, server, isBCH, cb) {
   server.storage.walletCheck({walletId:server.walletId, bch: isBCH}).then((x) => {
