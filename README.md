@@ -9,16 +9,163 @@
 
 - Trusted P2P Peer
 - MongoDB Server >= v3.4
+- docker-compose v3
+- Node.js v10
 
-### Checkout the repo
+### Preparations
 
+<details>
+<summary>Checkout the repo bitcore-btx</summary>
+<br>
+  
 ```sh
-git clone git@github.com:dalijolijo/bitcore-btx.git
+git clone https://github.com/dalijolijo/bitcore-btx.git
+cd bitcore-btx
 git checkout master
-npm install
+npm install [--unsafe-perm]
 ```
 
-## Setup Guide
+</details>
+
+<details>
+<summary>Install docker-compose v3</summary>
+<br>
+
+```sh
+./install_docker.sh
+```
+
+</details>
+
+<details>
+<summary>Install Node.js v10</summary>
+<br>
+
+```sh
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+apt-get install nodejs
+```
+
+</details>
+
+## Setup Guide for BTX
+
+### 1. Setup Bitcore config for BTX
+
+<details>
+<summary>Configfile bitcore.config.json for BTX Mainnet</summary>
+<br>
+
+```json
+{
+  "bitcoreNode": {
+    "chains": {
+      "BTX": {
+        "mainnet": {
+          "parentChain": "BTC",
+          "forkHeight": 492820,
+          "trustedPeers": [
+            {
+              "host": "127.0.0.1",
+              "port": 40008
+            }
+          ],
+          "rpc": {
+            "host": "127.0.0.1",
+            "port": 40009,
+            "username": "username",
+            "password": "password"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+</details>
+
+### 2. Setup BTX Node
+
+<details>
+<summary>Build Docker Image for BTX Node</summary>
+
+```sh
+cd bitcore-btx/docker-bitcored
+docker build -t dalijolijo/bitcored:<VERSION> .
+# Example for VERSION 0.15.2.1
+docker build -t dalijolijo/bitcored:0.15.2.1 .
+```
+
+</details>
+
+### 3. Run BTX Node
+
+<details>
+<summary>Starting BTX Node Docker Container</summary>
+
+```sh
+cd bitcore-btx/docker-bitcored
+docker run --rm --name bitcored -v /home/.bitcore:/data -d -p 40008:40008 -p 40009:40009 dalijolijo/bitcored:<VERSION> -rpcuser=<USER> -rpcpassword=<PWD>
+# Example for VERSION 0.15.2.1
+docker run --rm --name bitcored -v /home/.bitcore:/data -d -p 40008:40008 -p 40009:40009 dalijolijo/bitcored:0.15.2.1 -rpcuser=btx -rpcpassword=btx
+```
+
+</details>
+
+<details>
+<summary>Check if BTX Node is fully synced</summary>
+
+```sh
+docker logs --tail 30 bitcored
+```
+
+</details>
+
+### 4. Start MongoDB Server with docker-compose
+
+<details>
+<summary>Configfile docker-compose.yml for MongoDB Server</summary>
+<br>
+
+```yml
+version: '3'
+services:
+  database:
+    image: mongo:3.4-jessie
+    ports:
+    - 27017:27017
+    volumes:
+    - /data/db:/data/db
+```
+
+</details>
+
+<details>
+<summary>Starting MongoDB Server Docker Container</summary>
+<br>
+
+```sh
+cd bitcore-btx
+docker-compose up -d
+docker-compose logs
+```
+
+</details>
+
+### 5. Start Bitcore
+
+<details>
+<summary>Starting Bitcore</summary>
+<br>
+  
+```sh
+npm run node
+```
+
+</details>
+
+## Setup Guide for BTC
 
 ### 1. Setup Bitcore config
 
@@ -178,9 +325,15 @@ rpcpassword=password
 
 ### 4. Start Bitcore
 
+<details>
+<summary>Starting Bitcore</summary>
+<br>
+  
 ```sh
 npm run node
 ```
+
+</details>
 
 ## Applications
 
