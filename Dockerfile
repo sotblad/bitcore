@@ -1,7 +1,7 @@
 FROM node:carbon
 WORKDIR /usr/src/app
 COPY package*.json ./
-RUN npm install
+RUN npm install --unsafe-perm
 COPY lerna.json ./
 
 COPY ./packages/bitcore-build/package.json ./packages/bitcore-build/package.json
