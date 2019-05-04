@@ -4,7 +4,7 @@ var bitcore = module.exports;
 
 // module information
 bitcore.version = 'v' + require('./package.json').version;
-bitcore.versionGuard = function(version) {
+bitcore.versionGuard = function(version) { return;
   if (version !== undefined) {
     var message = 'More than one instance of bitcore-lib-btx found. ' +
       'Please make sure to require bitcore-lib-btx and check that submodules do' +
