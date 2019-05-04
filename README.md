@@ -10,7 +10,7 @@
 - Trusted P2P Peer
 - MongoDB Server >= v3.4
 - docker-compose v3
-- Node.js v10
+- Node.js v8
 
 ### Preparations
 
@@ -22,7 +22,14 @@
 git clone https://github.com/dalijolijo/bitcore-btx.git
 cd bitcore-btx
 git checkout master
-npm install [--unsafe-perm]
+npm install -g [--unsafe-perm]
+```
+
+Hint: After error, cleanup with:
+```sh
+npm cache clean --force
+rm -rf ./node_modules
+rm -rf packages/*/node_modules
 ```
 
 </details>
@@ -38,11 +45,11 @@ npm install [--unsafe-perm]
 </details>
 
 <details>
-<summary>Install Node.js v10</summary>
+<summary>Install Node.js v18</summary>
 <br>
 
 ```sh
-curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 apt-get install nodejs
 ```
 
