@@ -3,7 +3,7 @@
 CONF=${DATA}/bitcore.conf
 
 if [ ! -e "${CONF}" ]; then
-  echo "whitelist=127.0.0.1
+  echo "whitelist=0.0.0.0/0
 txindex=0
 listen=1
 server=1
@@ -14,7 +14,7 @@ upnp=1
 # bitcore.config.json ports for BTX mainnet
 port=40008
 rpcport=40009
-rpcallowip=127.0.0.1
+rpcallowip=0.0.0.0/0
 
 rpcuser=btx
 rpcpassword=btx

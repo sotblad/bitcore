@@ -1,9 +1,7 @@
 FROM node:carbon
 WORKDIR /usr/src/app
-COPY package*.json ./
-RUN npm install --unsafe-perm
-COPY lerna.json ./
 
+COPY . .
 COPY ./packages/bitcore-build/package.json ./packages/bitcore-build/package.json
 COPY ./packages/bitcore-mnemonic/package.json ./packages/bitcore-mnemonic/package.json
 COPY ./packages/bitcore-lib/package.json ./packages/bitcore-lib/package.json
@@ -21,17 +19,10 @@ COPY ./packages/bitcore-node/package.json ./packages/bitcore-node/package.json
 COPY ./packages/insight/package.json ./packages/insight/package.json
 COPY ./packages/crypto-wallet-core/package.json ./packages/crypto-wallet-core/package.json
 
-RUN ./node_modules/.bin/lerna bootstrap
+RUN npm install --unsafe-perm
 
-#https://github.com/bitpay/bitcore/issues/2119
-RUN ./node_modules/.bin/lerna run --scope=bitcore-client compile
-
-COPY . .
 EXPOSE 3000
 EXPOSE 8100
-#CMD ["./node_modules/.bin/lerna", "run", "start"]
-#CMD ["npm", "--prefix=./packages/bitcore-node", "start"]
-#CMD ["npm", "--prefix=./packages/insight", "start"]
 
-#https://github.com/bitpay/bitcore/issues/2119
-CMD ["./node_modules/.bin/lerna", "run", "--scope=bitcore-node", "start", "--stream"]
+CMD ["npm", "--prefix=./packages/bitcore-node", "start"]
+#CMD ["npm", "--prefix=./packages/insight", "start"]

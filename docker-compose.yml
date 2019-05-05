@@ -1,27 +1,86 @@
 version: '3'
-services:
-  database:
-    image: mongo:3.4-jessie
-    ports: 
-    - 27017:27017
-    volumes: 
-    - /data/db:/data/db
-    
-#  bitcore-node:
-#    build: .
-#    image: bitcore-node
-#    links:
-#      - database
-#    ports:
-#      - 8100:8100
-#      - 3000:3000
-#    environment:
-#      - DB_HOST=database
-#    env_file: .env
 
-#insight:
-  #image: insight
-  #links:
-    #- bitcore-node
-  #environment:
-    #- API_URL=bitcore-node
+services:
+
+  bitcored:
+    build:
+      context: ./docker-bitcored
+      dockerfile: ./Dockerfile
+    image: bitcored
+    container_name: bitcored
+    command: 
+      -regtest=0
+      -port=40008
+      -rpcport=40009
+      -whitelist=172.21.0.12
+      -rpcallowip=172.21.0.12
+      -rpcbind=172.21.0.10
+      -rpcuser=btx 
+      -rpcpassword=btx
+    restart: always
+    networks:
+      insight-net:
+        ipv4_address: 172.21.0.10
+    ports:
+      - 40008:40008
+    expose:
+      - 40009 
+    volumes:
+      - ./bitcore:/data
+
+  mongodb:
+    image: mongo:3.4-jessie
+    container_name: mongodb
+    restart: always
+    networks:
+      insight-net:
+        ipv4_address: 172.21.0.11
+    ports: 
+      - 27017:27017
+    volumes:
+      - ./mongo:/data/db
+    
+  bitcore-node:
+    build: .
+    image: bitcore-node
+    container_name: bitcore-node
+    restart: always
+    networks:
+      insight-net:
+        ipv4_address: 172.21.0.12 
+    ports:
+      - 8100:8100
+      - 3000:3000
+    environment:
+      - DB_HOST=mongodb
+      - BITCORE_CONFIG_PATH=/bitcore/bitcore.config.json
+    depends_on:
+      - mongodb
+      - bitcored
+
+  insight:
+    image: insight
+    build:
+      context: ./packages/insight
+      dockerfile: ./Dockerfile
+    container_name: insight
+    restart: always
+    networks:
+      insight-net:
+        ipv4_address: 172.21.0.13
+    environment:
+      - API_URL=bitcore-node
+    depends_on:
+      - bitcore-node
+
+#volumes:
+#  insight-storage:
+
+networks:
+  insight-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.21.0.0/24
+
