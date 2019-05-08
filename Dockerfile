@@ -1,5 +1,6 @@
 FROM node:carbon
-WORKDIR /usr/src/app
+
+WORKDIR /bitcore
 
 COPY . .
 COPY ./packages/bitcore-build/package.json ./packages/bitcore-build/package.json

@@ -9,12 +9,8 @@ services:
     image: bitcored
     container_name: bitcored
     command: 
-      -regtest=0
-      -port=40008
-      -rpcport=40009
-      -whitelist=172.21.0.12
-      -rpcallowip=172.21.0.12
-      -rpcbind=172.21.0.10
+      -port=8555
+      -rpcport=8556
       -rpcuser=btx 
       -rpcpassword=btx
     restart: always
@@ -22,12 +18,12 @@ services:
       insight-net:
         ipv4_address: 172.21.0.10
     ports:
-      - 40008:40008
+      - 8555:8555 
     expose:
-      - 40008
-      - 40009 
+      - 8555
+      - 8556 
     volumes:
-      - ./bitcore:/data
+      - bitcored-storage:/data
 
   mongodb:
     image: mongo:3.4-jessie
@@ -41,7 +37,7 @@ services:
     expose:
       - 27017
     volumes:
-      - ./mongo:/data/db
+      - mongodb-storage:/data/db
     
   bitcore-node:
     build: .
@@ -74,15 +70,16 @@ services:
     networks:
       insight-net:
         ipv4_address: 172.21.0.13
-    #environment:
-    #  - API_URL=bitcore-node
-    #  - NETWORK=mainnet
-    #  - CHAIN=BTX
+    environment:
+      - API_URL=bitcore-node
+      - NETWORK=mainnet
+      - CHAIN=BTX
     depends_on:
       - bitcore-node
 
-#volumes:
-#  insight-storage:
+volumes:
+  bitcored-storage:
+  mongodb-storage:
 
 networks:
   insight-net:
