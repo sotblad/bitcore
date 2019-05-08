@@ -3,7 +3,47 @@
 
 **Infrastructure to build Bitcoin and blockchain-based applications for the next generation of financial technology.**
 
-## Getting Started
+## Getting Started with docker-compose
+
+## Easy Setup Guide for BTX
+
+<details>
+<summary>Checkout the repo bitcore-btx</summary>
+<br>
+  
+```sh
+git clone https://github.com/dalijolijo/bitcore-btx.git
+cd bitcore-btx
+git checkout master
+```
+
+</details>
+
+<details>
+<summary>Install docker.io and docker-compose v.3</summary>
+<br>
+  
+```sh
+cd bitcore-btx
+./install_docker.sh
+```
+
+</details>
+
+<details>
+<summary>Starting Bitcore-Node, BTX Node, Mongo DB and Insight in Docker Containers</summary>
+<br>
+
+```sh
+cd bitcore-btx
+docker-compose up -d --build
+docker ps
+docker-compose logs
+```
+
+</details>
+
+## Getting Started on Ubuntu (without docker-compose)
 
 ### Requirements
 
@@ -171,6 +211,7 @@ npm run node
 ```
 
 </details>
+
 
 ## Setup Guide for BTC
 
