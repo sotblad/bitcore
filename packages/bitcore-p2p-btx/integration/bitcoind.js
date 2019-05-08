@@ -26,15 +26,15 @@ var messages = new Messages({
   network: network
 });
 var blockHash = {
-  'livenet': '000000000000000013413cf2536b491bf0988f52e90c476ffeb701c8bfdb1db9',
+  'livenet': '5a9913f6deb727dabd2a941a4edac8a9f8732790df60345e8a3f391cbf4898d6',
   'testnet': '0000000058cc069d964711cd25083c0a709f4df2b34c8ff9302ce71fe5b45786'
 };
 var stopBlock = {
-  'livenet': '00000000000000000b539ef570128acb953af3dbcfc19dd8e6066949672311a1',
+  'livenet': '6c16474a2d6e1f4654bd690451c7491de365816843c0804cb2a4c70bd3278ba5',
   'testnet': '00000000d0bc4271bcefaa7eb25000e345910ba16b91eb375cd944b68624de9f'
 };
 var txHash = {
-  'livenet': '22231e8219a0617a0ded618b5dc713fdf9b0db8ebd5bb3322d3011a703119d3b',
+  'livenet': '14dc38bf3225537a0210a15da3f1c55e0f95605c8393ad14c16a874717e67b5c',
   'testnet': '22231e8219a0617a0ded618b5dc713fdf9b0db8ebd5bb3322d3011a703119d3b'
 };
 
@@ -49,7 +49,7 @@ describe('Integration with ' + network.name + ' bitcoind', function() {
   it('handshakes', function(cb) {
     var peer = new Peer(opts);
     peer.once('version', function(m) {
-      m.version.should.be.above(70000);
+      m.version.should.be.above(70015);
       m.services.toString().should.equal('1');
       Math.abs(new Date() - m.timestamp).should.be.below(10000); // less than 10 seconds of time difference
       m.nonce.length.should.equal(8);
@@ -74,7 +74,7 @@ describe('Integration with ' + network.name + ' bitcoind', function() {
   };
   it('connects', function(cb) {
     connect(function(peer) {
-      peer.version.should.be.above(70000);
+      peer.version.should.be.above(70015);
       _.isString(peer.subversion).should.equal(true);
       _.isNumber(peer.bestHeight).should.equal(true);
       cb();
