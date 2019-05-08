@@ -15,7 +15,6 @@ RUN chmod a+x /usr/local/bin/* && \
     chmod a+x /tmp/bin/bitcored && \
     mv /tmp/bin/bitcored /usr/local/bin && \
     apt-get -y autoremove && \
-    apt-get purge -y wget ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 VOLUME ["/data"]

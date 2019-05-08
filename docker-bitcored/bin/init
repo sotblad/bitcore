@@ -1,13 +1,14 @@
 #!/bin/bash
 
+#
+# Configure bitcore.conf
+#
 CONF=${DATA}/bitcore.conf
 
 if [ ! -e "${CONF}" ]; then
   echo "txindex=0
 listen=1
 server=1
-irc=1
-upnp=1
 
 # Make sure port & rpcport matches the
 # bitcore.config.json ports for BTX mainnet
@@ -20,5 +21,15 @@ rpcpassword=btx
 
 printtoconsole=1" > "${CONF}"
 fi
+
+
+#
+# Downloading bootstrap file
+#
+printf "** Downloading bootstrap file ***\n"
+cd ${DATA}
+wget https://bitcore.cc/bootstrap.tar.gz
+tar -xvzf bootstrap.tar.gz
+rm bootstrap.tar.gz
 
 exec bitcored -datadir=${DATA} -conf=${CONF} "$@"
