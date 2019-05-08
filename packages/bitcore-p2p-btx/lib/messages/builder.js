@@ -60,6 +60,11 @@ function builder(options) {
       mempool: 'MemPool',
       getaddr: 'GetAddr'
     },
+    unsupportedCommands: [
+      'sendheaders',
+      'sendcmpct',
+      'feefilter'
+    ],
     commands: {}
   };
 

@@ -98,7 +98,9 @@ Messages.prototype._discardUntilNextMessage = function(dataBuffer) {
 
 Messages.prototype._buildFromBuffer = function(command, payload) {
   if (!this.builder.commands[command]) {
-    throw new Error('Unsupported message command: ' + command);
+    //throw new Error('Unsupported message command: ' + command);
+    if (this.builder.unsupportedCommands.indexOf(command) > -1) return; // ignore unsupported message commands
+    throw new Error('Unrecognized message command: ' + command); // throw error if unrecognized message command
   }
   return this.builder.commands[command].fromBuffer(payload);
 };
