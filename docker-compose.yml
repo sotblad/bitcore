@@ -34,8 +34,7 @@ services:
       - 8555
       - 8556 
     volumes:
-      #- bitcored-storage:/data
-     - /home/.bitcore:/data
+      - bitcored-storage:/data
 
   mongodb:
     image: mongo:3.4-jessie
@@ -52,7 +51,9 @@ services:
       - mongodb-storage:/data/db
     
   bitcore-node:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile.btx
     image: bitcore-node
     container_name: bitcore-node
     restart: always

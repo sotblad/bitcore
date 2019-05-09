@@ -36,7 +36,7 @@ cd bitcore-btx
 
 ```sh
 cd bitcore-btx
-docker-compose up -d --build
+docker-compose up -d -f docker-compose.btx.json
 docker ps
 docker-compose logs
 ```
