@@ -13,9 +13,9 @@ services:
       -whitelist=172.21.0.0/24
       -whitelist=127.0.0.1
       -txindex=1
-      -addressindex=1
-      -timestampindex=1
-      -spentindex=1
+      -addressindex=0
+      -timestampindex=0
+      -spentindex=0
       -maxconnections=100
       -rpcbind=172.21.0.10
       -rpcallowip=172.21.0.0/24
@@ -34,8 +34,8 @@ services:
       - 8555
       - 8556 
     volumes:
-      - bitcored-storage:/data
-      #- /home/.bitcore:/data
+      #- bitcored-storage:/data
+      - /home/bitcore:/data
 
   mongodb:
     image: mongo:3.4-jessie
@@ -49,8 +49,9 @@ services:
     expose:
       - 27017
     volumes:
-      - mongodb-storage:/data/db
-    
+      #- mongodb-storage:/data/db
+      - /home/mongodb:/data/db
+
   bitcore-node:
     build:
       context: .
@@ -60,7 +61,7 @@ services:
     restart: always
     networks:
       insight-net:
-        ipv4_address: 172.21.0.12 
+        ipv4_address: 172.21.0.13 
     ports:
       #- 8100:8100
       - 3000:3000
@@ -68,8 +69,8 @@ services:
       - 3000
       - 8100
     environment:
-      - DB_HOST=mongodb
-      - BITCORE_CONFIG_PATH=/bitcore/bitcore.config.json
+      - "DB_HOST=mongodb"
+      - "BITCORE_CONFIG_PATH=/bitcore/bitcore.config.json"
     depends_on:
       - mongodb
       - bitcored
@@ -77,27 +78,29 @@ services:
   insight:
     image: insight
     build:
-      context: ./packages/insight
+      context: ./packages/insight-previous
       dockerfile: ./Dockerfile
     container_name: insight
     restart: always
     networks:
       insight-net:
-        ipv4_address: 172.21.0.13
+        ipv4_address: 172.21.0.14
     ports:
       - 8100:8100
+    expose:
+      - 8100
+      - 3000
     environment:
-      - ENV=prod
-      - CHAIN=BTX
-      - NETWORK=mainnet
-      - API_PREFIX=http://172.21.0.12:3000/api
-      - API_URL=http://172.21.0.12:3000/api
+      - "ENV=prod"
+      - "CHAIN=BTX"
+      - "NETWORK=mainnet"
+      - "API_PREFIX=https://172.21.0.14/api"
     depends_on:
       - bitcore-node
 
-volumes:
-  bitcored-storage:
-  mongodb-storage:
+#volumes:
+#  bitcored-storage:
+#  mongodb-storage:
 
 networks:
   insight-net:
