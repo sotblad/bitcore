@@ -9,19 +9,19 @@
     },
     "chains": {
       "BTX": {
-        "regtest": {
+        "mainnet": {
           "chainSource": "p2p",
           "trustedPeers": [
             {
-              "host": "bitcore",
-              "port": 8556
+              "host": "172.21.0.10",
+              "port": 8555
             }
           ],
           "rpc": {
-            "host": "bitcore",
-            "port": 8555,
-            "username": "bitcorenodetest",
-            "password": "local321"
+            "host": "172.21.0.10",
+            "port": 8556,
+            "username": "btx",
+            "password": "btx"
           }
         }
       }

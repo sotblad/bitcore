@@ -27,3 +27,17 @@ EXPOSE 8100
 
 CMD ["npm", "--prefix=./packages/bitcore-node", "start"]
 #CMD ["npm", "--prefix=./packages/insight", "start"]
+
+####################################################################################################
+#"scripts": {
+#    "clean": "ionic-app-scripts clean",
+#    "build:prod": "ENV=prod CHAIN=BTC NETWORK=mainnet API_PREFIX=https://api.bitcore.io/api npm run ionic:build --prod",
+#    "serve:prod": "npm run clean && npm run build:prod && npm run serve",
+#    "serve": "serve www",
+#    "ionic:build": "ionic-app-scripts build",
+#    "ionic:serve": "ionic-app-scripts serve --port 8200",
+#    "postinstall": "./node_modules/.bin/webdriver-manager update --gecko false",
+#    "start": "npm run ionic:serve",
+#    "test": "ng test --watch=false --code-coverage --no-progress",
+#    "fix:prettier": "prettier '{*,**/*}.{js,ts,md,json,css}' --write",
+#    "fix:tslint": "tslint --type-check --fix --project ."

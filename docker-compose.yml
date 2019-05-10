@@ -63,7 +63,7 @@ services:
       insight-net:
         ipv4_address: 172.21.0.13 
     ports:
-      #- 8100:8100
+      - 8100:8100
       - 3000:3000
     expose:
       - 3000
@@ -76,25 +76,25 @@ services:
       - bitcored
 
   insight:
-    image: insight
+    image: insight-previous
     build:
-      context: ./packages/insight-previous
-      dockerfile: ./Dockerfile
-    container_name: insight
+      context: .
+      dockerfile: ./Dockerfile.insight-previous.btx
+    container_name: insight-previous
     restart: always
     networks:
       insight-net:
         ipv4_address: 172.21.0.14
     ports:
-      - 8100:8100
+      - 8200:8200
     expose:
-      - 8100
-      - 3000
+      - 8200
     environment:
       - "ENV=prod"
       - "CHAIN=BTX"
       - "NETWORK=mainnet"
-      - "API_PREFIX=https://172.21.0.14/api"
+      - "API_PREFIX=http://172.21.0.13:3000/api"
+      - "API_URL=bitcore-node"
     depends_on:
       - bitcore-node
 
