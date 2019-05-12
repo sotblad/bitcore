@@ -3,9 +3,7 @@
 
 **Infrastructure to build Bitcoin and blockchain-based applications for the next generation of financial technology.**
 
-## Getting Started with docker-compose
-
-## Easy Setup Guide for BTX
+## Easy Setup Guide for BTX (with docker-compose)
 
 <details>
 <summary>Checkout the repo bitcore-btx</summary>
