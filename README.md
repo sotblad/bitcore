@@ -37,11 +37,40 @@ cd bitcore-btx
 ```sh
 cd bitcore-btx
 docker-compose up -d -f docker-compose.btx.json
-docker ps
-docker-compose logs
 ```
 
 </details>
+
+
+<details>
+<summary>Show logging of docker containers</summary>
+<br>
+
+```sh
+#show all running docker containers
+docker ps
+
+#show logs of all docker containers
+docker-compose logs -f
+
+#show only a specific docker container log
+docker logs -f <DOCKER NAME>
+```
+
+</details>
+
+<details>
+<summary>Check Insight and API in your browser</summary>
+<br>
+
+
+* Insight: http://YOUR-IP
+* API: http://YOUR-IP:3000/api/status/enabled-chains
+
+Find the REST API Documentation with examples [here](./packages/bitcore-node/docs/api-documentation.md)
+
+</details>
+
 
 ## Getting Started on Ubuntu (without docker-compose)
 
