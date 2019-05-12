@@ -1,7 +1,6 @@
 version: '3'
 
 services:
-
   bitcored:
     build:
       context: ./docker-bitcored
@@ -65,9 +64,6 @@ services:
     ports:
       - 8100:8100
       - 3000:3000
-    expose:
-      - 3000
-      - 8100
     environment:
       - "DB_HOST=mongodb"
       - "BITCORE_CONFIG_PATH=/bitcore/bitcore.config.json"
@@ -86,15 +82,12 @@ services:
       insight-net:
         ipv4_address: 172.21.0.14
     ports:
-      - 8200:8200
-    expose:
-      - 8200
+      - 80:80
     environment:
       - "ENV=prod"
       - "CHAIN=BTX"
       - "NETWORK=mainnet"
-      - "API_PREFIX=http://172.21.0.13:3000/api"
-      - "API_URL=bitcore-node"
+      - "API_PREFIX=http://51.158.182.210:3000/api"
     depends_on:
       - bitcore-node
 
@@ -109,4 +102,3 @@ networks:
       driver: default
       config:
         - subnet: 172.21.0.0/24
-
