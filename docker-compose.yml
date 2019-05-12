@@ -87,7 +87,7 @@ services:
       - "ENV=prod"
       - "CHAIN=BTX"
       - "NETWORK=mainnet"
-      - "API_PREFIX=http://51.158.182.210:3000/api"
+      - "API_PREFIX=http://YOUR_IP:3000/api"
     depends_on:
       - bitcore-node
 
