@@ -29,6 +29,36 @@ cd bitcore-btx
 </details>
 
 <details>
+<summary>Modify Insight IP in docker-compose.yml file</summary>
+<br>
+
+Change ```YOUR_IP``` in environment variable ``- "API_PREFIX=http://YOUR_IP:3000/api"``
+
+```json
+  insight:
+    image: insight-previous
+    build:
+      context: .
+      dockerfile: ./Dockerfile.insight-previous.btx
+    container_name: insight-previous
+    restart: always
+    networks:
+      insight-net:
+        ipv4_address: 172.21.0.14
+    ports:
+      - 80:80
+    environment:
+      - "ENV=prod"
+      - "CHAIN=BTX"
+      - "NETWORK=mainnet"
+      - "API_PREFIX=http://YOUR_IP:3000/api"
+    depends_on:
+      - bitcore-node
+```
+
+</details>
+
+<details>
 <summary>Starting Bitcore-Node, BTX Node, Mongo DB and Insight in Docker Containers</summary>
 <br>
 
