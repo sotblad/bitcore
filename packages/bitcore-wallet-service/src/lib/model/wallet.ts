@@ -43,6 +43,7 @@ export interface IWallet {
   nativeCashAddr: boolean;
   isTestnet?: boolean;
   stealth?: IStealthAddress;
+  usePurpose48?: boolean;
 }
 
 export class Wallet {
@@ -70,6 +71,7 @@ export class Wallet {
   nativeCashAddr: boolean;
   isTestnet?: boolean;
   stealth?: IStealthAddress;
+  usePurpose48?: boolean;
 
   scanning: boolean;
   static COPAYER_PAIR_LIMITS = {};
@@ -107,6 +109,8 @@ export class Wallet {
     x.addressManager = AddressManager.create({
       derivationStrategy: x.derivationStrategy
     });
+    x.usePurpose48  = opts.usePurpose48;
+
     x.scanStatus = null;
 
     // v8 related
@@ -120,6 +124,7 @@ export class Wallet {
         ? true
         : null
       : opts.nativeCashAddr;
+
 
     return x;
   }
@@ -158,6 +163,7 @@ export class Wallet {
     x.beAuthPublicKey2 = obj.beAuthPublicKey2;
 
     x.nativeCashAddr = obj.nativeCashAddr;
+    x.usePurpose48 = obj.usePurpose48;
 
     if (obj.stealth) {
       x.stealth = StealthAddress.fromObj(obj.stealth);

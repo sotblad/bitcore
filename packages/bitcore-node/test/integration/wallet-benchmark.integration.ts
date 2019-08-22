@@ -15,6 +15,7 @@ import { Wallet } from 'bitcore-client';
 import { ICoin, CoinStorage } from '../../src/models/coin';
 import { MongoBound } from '../../src/models/base';
 import { ObjectId } from 'mongodb';
+import { TransactionStorage } from '../../src/models/transaction';
 
 const chain = 'BTC';
 const network = 'regtest';
@@ -68,7 +69,7 @@ async function verifyCoinSpent(coin: MongoBound<ICoin>, spentTxid: string, walle
   expect(wallet1Coin!.spentTxid).to.eq(spentTxid);
   expect(wallet1Coin!.wallets[0].toHexString()).to.eq(wallet!._id!.toHexString());
 }
-async function checkWalletReceived(wallet: IWallet, txid: string, address: string) {
+async function checkWalletReceived(receivingWallet: IWallet, txid: string, address: string, sendingWallet: IWallet) {
   const broadcastedOutput = await CoinStorage.collection.findOne({
     chain,
     network,
@@ -78,11 +79,20 @@ async function checkWalletReceived(wallet: IWallet, txid: string, address: strin
 
   expect(broadcastedOutput!.address).to.eq(address);
   expect(broadcastedOutput!.wallets.length).to.eq(1);
-  expect(broadcastedOutput!.wallets[0].toHexString()).to.eq(wallet!._id!.toHexString());
+  expect(broadcastedOutput!.wallets[0].toHexString()).to.eq(receivingWallet!._id!.toHexString());
+
+  const broadcastedTransaction = await TransactionStorage.collection.findOne({ chain, network, txid });
+  expect(broadcastedTransaction!.txid).to.eq(txid);
+  expect(broadcastedTransaction!.fee).gt(0);
+
+  const txWallets = broadcastedTransaction!.wallets.map(w => w.toHexString());
+  expect(txWallets.length).to.eq(2);
+  expect(txWallets).to.include(receivingWallet!._id!.toHexString());
+  expect(txWallets).to.include(sendingWallet!._id!.toHexString());
 }
 
 describe('Wallet Benchmark', function() {
-  this.timeout(50000);
+  this.timeout(500000);
   before(async () => {
     await resetDatabase();
   });
@@ -112,35 +122,118 @@ describe('Wallet Benchmark', function() {
 
       const address1 = await rpc.getnewaddress('');
       const address2 = await rpc.getnewaddress('');
-      await rpc.call('generatetoaddress', [1, address1]);
-      await rpc.call('generatetoaddress', [1, address2]);
-      await rpc.generate(100);
-      await p2pWorker.syncDone();
-      const wallet1 = await createWallet([address1], 0, network);
-      const wallet2 = await createWallet([address2], 1, network);
-      const dbWallet1 = await checkWalletExists(wallet1.authPubKey, address1);
-      const dbWallet2 = await checkWalletExists(wallet2.authPubKey, address2);
-      const utxos = await checkWalletUtxos(wallet1, address1);
-      await checkWalletUtxos(wallet2, address2);
-      const tx = await rpc.call('createrawtransaction', [
-        utxos.map(utxo => ({ txid: utxo.mintTxid, vout: utxo.mintIndex })),
-        { [address1]: 0.1, [address2]: 0.1 }
-      ]);
-      const fundedTx = await rpc.call('fundrawtransaction', [tx]);
-      const signedTx = await rpc.call('signrawtransaction', [fundedTx.hex]);
-      const broadcastedTx = await rpc.call('sendrawtransaction', [signedTx.hex]);
-      while (!seenCoins.has(broadcastedTx)) {
+      const anAddress = 'mkzAfSHtmTh5Xsc352jf6TBPj55Lne5g21';
+
+      try {
+        await rpc.call('generatetoaddress', [1, address1]);
+        await rpc.call('generatetoaddress', [1, address2]);
+        await rpc.call('generatetoaddress', [100, anAddress]);
+        await p2pWorker.syncDone();
+
+        const wallet1 = await createWallet([address1], 0, network);
+        const wallet2 = await createWallet([address2], 1, network);
+        const dbWallet1 = await checkWalletExists(wallet1.authPubKey, address1);
+        const dbWallet2 = await checkWalletExists(wallet2.authPubKey, address2);
+        const utxos = await checkWalletUtxos(wallet1, address1);
+        await checkWalletUtxos(wallet2, address2);
+        const tx = await rpc.call('createrawtransaction', [
+          utxos.map(utxo => ({ txid: utxo.mintTxid, vout: utxo.mintIndex })),
+          { [address1]: 0.1, [address2]: 0.1 }
+        ]);
+        const fundedTx = await rpc.call('fundrawtransaction', [tx]);
+        const signedTx = await rpc.signrawtx(fundedTx.hex);
+        const broadcastedTx = await rpc.call('sendrawtransaction', [signedTx.hex]);
+        while (!seenCoins.has(broadcastedTx)) {
+          console.log('...WAITING...'); // TODO
+          await wait(1000);
+        }
+        await verifyCoinSpent(utxos[0], broadcastedTx, dbWallet1!);
+        await checkWalletReceived(dbWallet1!, broadcastedTx, address1, dbWallet2!);
+        await checkWalletReceived(dbWallet2!, broadcastedTx, address2, dbWallet1!);
         await wait(1000);
+        await socket.disconnect();
+        await p2pWorker.stop();
+        await Event.stop();
+        await Api.stop();
+      } catch (e) {
+        console.log('Error : ', e);
+        expect(e).to.be.undefined;
       }
-      await verifyCoinSpent(utxos[0], broadcastedTx, dbWallet1!);
-      await checkWalletReceived(dbWallet1!, broadcastedTx, address1);
-      await checkWalletReceived(dbWallet2!, broadcastedTx, address2);
-      await wait(1000);
-      await socket.disconnect();
-      await p2pWorker.stop();
-      await Event.stop();
-      await Api.stop();
     });
+
+    it('should be able to create two wallets and have them interact, while syncing', async () => {
+      await Event.start();
+      await Api.start();
+      const p2pWorker = new P2pWorker({
+        chain,
+        network,
+        chainConfig
+      });
+      await p2pWorker.start();
+
+      const seenCoins = new Set();
+      const socket = io.connect(
+        'http://localhost:3000',
+        { transports: ['websocket'] }
+      );
+      socket.on('connect', () => {
+        const room = `/${chain}/${network}/inv`;
+        socket.emit('room', room);
+      });
+      socket.on('coin', (coin: ICoin) => {
+        seenCoins.add(coin.mintTxid);
+      });
+
+      const address1 = await rpc.getnewaddress('');
+      const address2 = await rpc.getnewaddress('');
+      const anAddress = 'mkzAfSHtmTh5Xsc352jf6TBPj55Lne5g21';
+
+      try {
+        await rpc.call('generatetoaddress', [1, address1]);
+        await rpc.call('generatetoaddress', [1, address2]);
+
+        // mature coins
+        await rpc.call('generatetoaddress', [100, anAddress]);
+        await p2pWorker.syncDone();
+
+        const wallet1 = await createWallet([address1], 2, network);
+        const wallet2 = await createWallet([address2], 3, network);
+        const dbWallet1 = await checkWalletExists(wallet1.authPubKey, address1);
+        const dbWallet2 = await checkWalletExists(wallet2.authPubKey, address2);
+        const utxos = await checkWalletUtxos(wallet1, address1);
+        await checkWalletUtxos(wallet2, address2);
+        const tx = await rpc.call('createrawtransaction', [
+          utxos.map(utxo => ({ txid: utxo.mintTxid, vout: utxo.mintIndex })),
+          { [address1]: 0.1, [address2]: 0.1 }
+        ]);
+        const fundedTx = await rpc.call('fundrawtransaction', [tx]);
+        const signedTx = await rpc.signrawtx(fundedTx.hex);
+
+        await rpc.call('generatetoaddress', [100, anAddress]);
+        p2pWorker.sync();
+        expect(p2pWorker.isSyncing).to.be.true;
+
+        // Generate some blocks for the node to process
+        const broadcastedTx = await rpc.call('sendrawtransaction', [signedTx.hex]);
+        expect(p2pWorker.isSyncing).to.be.true;
+        while (!seenCoins.has(broadcastedTx)) {
+          console.log('...WAITING...'); // TODO
+          await wait(1000);
+        }
+        await verifyCoinSpent(utxos[0], broadcastedTx, dbWallet1!);
+        await checkWalletReceived(dbWallet1!, broadcastedTx, address1, dbWallet2!);
+        await checkWalletReceived(dbWallet2!, broadcastedTx, address2, dbWallet1!);
+        await wait(1000);
+        await socket.disconnect();
+        await p2pWorker.stop();
+        await Event.stop();
+        await Api.stop();
+      } catch (e) {
+        console.log('Error : ', e);
+        expect(e).to.be.undefined;
+      }
+    });
+
 
     it('should import all addresses and verify in database while below 300 mb of heapUsed memory', async () => {
       await Event.start();
@@ -150,20 +243,22 @@ describe('Wallet Benchmark', function() {
       let mediumAddressBatch = new Array<string>();
       let largeAddressBatch = new Array<string>();
 
+      console.log('Generating small batch of addresses');
       for (let i = 0; i < 10; i++) {
         let address = await rpc.getnewaddress('');
         smallAddressBatch.push(address);
       }
 
+      console.log('Generating medium batch of addresses');
       expect(smallAddressBatch.length).to.deep.equal(10);
 
       for (let i = 0; i < 100; i++) {
         let address = await rpc.getnewaddress('');
         mediumAddressBatch.push(address);
       }
-
       expect(mediumAddressBatch.length).to.deep.equal(100);
 
+      console.log('Generating large batch of addresses');
       for (let i = 0; i < 1000; i++) {
         let address = await rpc.getnewaddress('');
         largeAddressBatch.push(address);
@@ -171,6 +266,7 @@ describe('Wallet Benchmark', function() {
 
       expect(largeAddressBatch.length).to.deep.equal(1000);
 
+      console.log('Checking');
       const importedWallet1 = await createWallet(smallAddressBatch, 0, network);
       const importedWallet2 = await createWallet(mediumAddressBatch, 1, network);
       const importedWallet3 = await createWallet(largeAddressBatch, 2, network);
