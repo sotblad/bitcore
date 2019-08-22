@@ -93,7 +93,7 @@ Utils.getClient = function(args, opts, cb) {
   opts = opts || {};
 
   var filename = args.file || process.env['WALLET_FILE'] || process.env['HOME'] + '/.wallet.dat';
-  var host = args.host || process.env['VWS_HOST'] || 'http://localhost:3232/';
+  var host = args.host || process.env['VWS_HOST'] || 'https://vws.vergecurrency.network/';
 
   var storage = new FileStorage({
     filename: filename,
@@ -290,7 +290,7 @@ Utils.COIN = {
     maxDecimals: 8,
     minDecimals: 8,
   },
-
+ 
 };
 
 Utils.renderAmount = function(satoshis, coin, opts) {
