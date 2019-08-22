@@ -34,6 +34,17 @@ Constants.UNITS = {
       minDecimals: 2,
     }
   },
+  xvg: {
+    toSatoshis: 1000000,
+    full: {
+      maxDecimals: 6,
+      minDecimals: 6,
+    },
+    short: {
+      maxDecimals: 6,
+      minDecimals: 2,
+    }
+  },
   bit: {
     toSatoshis: 100,
     full: {
@@ -47,6 +58,6 @@ Constants.UNITS = {
   },
 };
 
-Constants.COINS = [ 'btc', 'bch'];
+Constants.COINS = [ 'btc', 'bch', 'xvg' ];
 
 module.exports = Constants;
