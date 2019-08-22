@@ -8,11 +8,11 @@
 
 ## Principles
 
-Bitcoin Cash is an other powerful peer-to-peer platform for the next generation of financial technology. The decentralized nature of the Bitcoin network allows for highly resilient bitcoin infrastructure, and the developer community needs reliable, open-source tools to implement bitcoin apps and services.
+Bitcoin Cash is another powerful peer-to-peer platform for the next generation of financial technology. The decentralized nature of the Bitcoin network allows for highly resilient bitcoin infrastructure, and the developer community needs reliable, open-source tools to implement bitcoin apps and services.
 
 ## Bitcoin Cash changes
 
-Bitcoin cash uses a different `sighash` for transaction signatures. The implementation in bitcore-cash has been tested agains the original bitcoin-cash test vectors (see sighash.json in `/test`). `bitcoin-cash` modifications in script evaluation has not been implemented yet.
+Bitcoin cash uses a different `sighash` for transaction signatures. The implementation in bitcore-cash has been tested against the original bitcoin-cash test vectors (see sighash.json in `/test`). `bitcoin-cash` modifications in script evaluation have not been implemented yet.
 
 ## Get Started
 
@@ -35,15 +35,15 @@ The complete docs are hosted here: [bitcore documentation](https://github.com/bi
 
 ## Examples
 
-- [Generate a random address](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#generate-a-random-address)
-- [Generate a address from a SHA256 hash](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#generate-a-address-from-a-sha256-hash)
-- [Import an address via WIF](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#import-an-address-via-wif)
-- [Create a Transaction](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#create-a-transaction)
-- [Sign a Bitcoin message](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#sign-a-bitcoin-message)
-- [Verify a Bitcoin message](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#verify-a-bitcoin-message)
-- [Create an OP RETURN transaction](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#create-an-op-return-transaction)
-- [Create a 2-of-3 multisig P2SH address](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#create-a-2-of-3-multisig-p2sh-address)
-- [Spend from a 2-of-2 multisig P2SH address](https://github.com/bitpay/bitcore-lib-cash/blob/master/docs/examples.md#spend-from-a-2-of-2-multisig-p2sh-address)
+- [Generate a random address](docs/examples.md#generate-a-random-address)
+- [Generate a address from a SHA256 hash](docs/examples.md#generate-a-address-from-a-sha256-hash)
+- [Import an address via WIF](docs/examples.md#import-an-address-via-wif)
+- [Create a Transaction](docs/examples.md#create-a-transaction)
+- [Sign a Bitcoin message](docs/examples.md#sign-a-bitcoin-message)
+- [Verify a Bitcoin message](docs/examples.md#verify-a-bitcoin-message)
+- [Create an OP RETURN transaction](docs/examples.md#create-an-op-return-transaction)
+- [Create a 2-of-3 multisig P2SH address](docs/examples.md#create-a-2-of-3-multisig-p2sh-address)
+- [Spend from a 2-of-2 multisig P2SH address](docs/examples.md#spend-from-a-2-of-2-multisig-p2sh-address)
 
 ## Building the Browser Bundle
 

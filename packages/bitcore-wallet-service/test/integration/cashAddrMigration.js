@@ -13,19 +13,20 @@ log.level = 'info';
 var Bitcore = require('bitcore-lib');
 var Bitcore_ = {
   btc: Bitcore,
-  bch: require('bitcore-lib-cash')
+  bch: require('bitcore-lib-cash'),
+  xvg: Bitcore,
 };
 
 
 
-var Common = require('../../lib/common');
+var Common = require('../../ts_build/lib/common');
 var Utils = Common.Utils;
 var Constants = Common.Constants;
 var Defaults = Common.Defaults;
 
-var Model = require('../../lib/model');
+var Model = require('../../ts_build/lib/model');
 
-var WalletService = require('../../lib/server');
+var WalletService = require('../../ts_build/lib/server');
 
 var TestData = require('../testdata');
 var helpers = require('./helpers');

@@ -4,9 +4,11 @@ var _ = require('lodash');
 var chai = require('chai');
 var sinon = require('sinon');
 var should = chai.should();
-var V8 = require('../lib/blockchainexplorers/v8.js');
+var { V8 } = require('../ts_build/lib/blockchainexplorers/v8');
 var B = require('bitcore-lib-cash');
 const { Readable } = require('stream');
+var Common = require('../ts_build/lib/common');
+var Defaults = Common.Defaults;
 
 const V8UTXOS = [
 {"_id":"5c1d4bc47adced963b3cddb9","chain":"BCH","network":"testnet","coinbase":false,"mintIndex":0,"spentTxid":"","mintTxid":"6e34d9b83631cd55ee09d907061332ba3c17246e3c1255543fb7a35e58c52e42","mintHeight":12,"spentHeight":-2,"address":"qrua7vsdmks4522wwv8rtamfph7g8s8vpq6a0g3veh","script":"76a914f9df320ddda15a294e730e35f7690dfc83c0ec0888ac","value":1000000,"confirmations":-1},
@@ -14,13 +16,6 @@ const V8UTXOS = [
 {"_id":"5c21088f7adced963b33eea2","chain":"BCH","network":"testnet","coinbase":false,"mintIndex":0,"spentTxid":"","mintTxid":"42eeb1d139521fa5206685ffec5df3b302cf85561201178680a0efe6bd23d449","mintHeight":-1,"spentHeight":-2,"address":"qrua7vsdmks4522wwv8rtamfph7g8s8vpq6a0g3veh","script":"76a914f9df320ddda15a294e730e35f7690dfc83c0ec0888ac","value":2000000,"confirmations":-1}];
 
 
-
-class Client {
-  constructor() {
-  }
-  listTransactions () {
-  }
-};
 
 var t = (new Date).toISOString();
 var external = '11234';
@@ -48,7 +43,7 @@ var txs = [{
   satoshis: 5460,
   category: 'fee',
 },
-]; 
+];
 
 
 describe('V8', () => {
@@ -58,7 +53,7 @@ describe('V8', () => {
 
   describe('#listTransactions', () => {
     it('should handle partial json results', (done) => {
-      class PartialJson extends Client {
+      class PartialJson {
         listTransactions(opts) {
           class MyReadable extends Readable {
             constructor(options) {
@@ -73,7 +68,7 @@ describe('V8', () => {
           return new MyReadable;
         };
       };
-      
+
       var be = new V8({
         coin: 'btc',
         network: 'livenet',
@@ -93,15 +88,15 @@ describe('V8', () => {
     });
 
     it('should handle partial jsonline results', (done) => {
-      class PartialJsonL extends Client {
+      class PartialJsonL {
         listTransactions(opts) {
           class MyReadable extends Readable {
             constructor(options) {
               super(options);
-              var txStr = '{ "id": 1, "txid": "txid1", "confirmations": 1, "blockTime": "'+ 
+              var txStr = '{ "id": 1, "txid": "txid1", "confirmations": 1, "blockTime": "'+
                 t + '", "size": 226, "category": "send", "toAddress": "'+
                 external +'", "satoshis": 0.5e8 } \n { "id": 2, "txid": "txid2", "confirmations": 1, "category": "send", "blockTime": "'+
-                t + '", "satoshis": 0.3e8, "toAddress": "'+external + '"}'; 
+                t + '", "satoshis": 0.3e8, "toAddress": "'+external + '"}';
               this.push(txStr.substr(0,10));
               this.push(txStr.substr(10));
               this.push(null);
@@ -136,14 +131,14 @@ describe('V8', () => {
     it('should get uxtos', (done) => {
 
 
-      class PartialJson extends Client {
+      class PartialJson {
         getAddressTxos(opts) {
           return new Promise(function (resolve) {
             resolve(V8UTXOS);
-          }) 
+          })
         };
       };
-      
+
       var be = new V8({
         coin: 'bch',
         network: 'livenet',
@@ -197,7 +192,7 @@ describe('V8', () => {
         return done();
       });
     });
- 
+
     it('should ignore non-matching results from estimate fee', (done) => {
 
       let fakeRequest = {
@@ -246,6 +241,94 @@ describe('V8', () => {
           '4': 0.00017349,
           '5': 0.00017349 });
         return done();
+      });
+    });
+
+  });
+
+
+  describe('#broadcast', () => {
+    it('should broadcast a TX', (done) => {
+      class BroadcastOk {
+        broadcast(payload) {
+          return new Promise(function (resolve) {
+            resolve({'txid':'txid'});
+          })
+        };
+      };
+
+      var be = new V8({
+        coin: 'bch',
+        network: 'livenet',
+        url: 'http://dummy/',
+        apiPrefix: 'dummyPath',
+        userAgent: 'testAgent',
+        client: BroadcastOk,
+      });
+
+      be.broadcast('xxx', (err, txid) => {
+        should.not.exist(err);
+        txid.should.equal('txid');
+        done();
+      });
+    });
+
+    it('should fail to broadcast an invalid TX', (done) => {
+      class BroadcastInvalid {
+        broadcast(payload) {
+          return new Promise(function (resolve) {
+            resolve('invalid');
+          })
+        };
+      };
+
+      var be = new V8({
+        coin: 'bch',
+        network: 'livenet',
+        url: 'http://dummy/',
+        apiPrefix: 'dummyPath',
+        userAgent: 'testAgent',
+        client: BroadcastInvalid,
+      });
+
+      be.broadcast('xxx', (err, txid) => {
+        should.not.exist(txid);
+        err.toString().should.contain('Error');
+        done();
+      });
+    });
+
+
+    it('should retry to broadcast is socket hang up', (done) => {
+      var oldd = Defaults.BROADCAST_RETRY_TIME;
+      Defaults.BROADCAST_RETRY_TIME = 5;
+      var x=0;
+      class BroadcastInvalid {
+        broadcast(payload) {
+          return new Promise(function (resolve,reject) {
+            if (x++<2) {
+              reject('socket err or');
+            } else {
+              resolve({'txid':'txid'});
+            }
+          })
+        };
+      };
+
+      var be = new V8({
+        coin: 'bch',
+        network: 'livenet',
+        url: 'http://dummy/',
+        apiPrefix: 'dummyPath',
+        userAgent: 'testAgent',
+        client: BroadcastInvalid,
+      });
+
+      be.broadcast('xxx', (err, txid) => {
+        should.not.exist(err);
+        txid.should.equal('txid');
+        Defaults.BROADCAST_RETRY_TIME = oldd;
+        done();
       });
     });
 
