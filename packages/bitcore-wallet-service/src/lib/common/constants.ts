@@ -3,7 +3,8 @@
 module.exports = {
   COINS: {
     BTC: 'btc',
-    BCH: 'bch'
+    BCH: 'bch',
+    XVG: 'xvg',
   },
 
   NETWORKS: {

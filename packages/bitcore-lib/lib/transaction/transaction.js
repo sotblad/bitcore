@@ -69,7 +69,7 @@ Transaction.DUST_AMOUNT = 546;
 Transaction.FEE_SECURITY_MARGIN = 150;
 
 // max amount of satoshis in circulation
-Transaction.MAX_MONEY = 21000000 * 1e8;
+Transaction.MAX_MONEY = 16555000000 * 1e8;
 
 // nlocktime limit to be considered block height rather than a timestamp
 Transaction.NLOCKTIME_BLOCKHEIGHT_LIMIT = 5e8;
@@ -136,7 +136,7 @@ Object.defineProperty(Transaction.prototype, 'outputAmount', ioProperty);
  * Retrieve the little endian hash of the transaction (used for serialization)
  * @return {Buffer}
  */
-Transaction.prototype._getHash = function() {
+Transaction.prototype._getHash = function () {
   return Hash.sha256sha256(this.toBuffer(true));
 };
 
@@ -144,7 +144,7 @@ Transaction.prototype._getHash = function() {
  * Retrieve the little endian hash of the transaction including witness data
  * @return {Buffer}
  */
-Transaction.prototype._getWitnessHash = function() {
+Transaction.prototype._getWitnessHash = function () {
   return Hash.sha256sha256(this.toBuffer(false));
 };
 
@@ -253,7 +253,7 @@ Transaction.prototype._hasFeeError = function(opts, unspent) {
   }
 
   if (!opts.disableSmallFees) {
-    var minimumFee = Math.ceil(this._estimateFee() / Transaction.FEE_SECURITY_MARGIN);
+    var minimumFee = this._estimateFee();
     if (unspent < minimumFee) {
       return new errors.Transaction.FeeError.TooSmall(
         'expected more than ' + minimumFee + ' but got ' + unspent
@@ -308,6 +308,7 @@ Transaction.prototype.hasWitnesses = function() {
 
 Transaction.prototype.toBufferWriter = function(writer, noWitness) {
   writer.writeInt32LE(this.version);
+  writer.writeInt32LE(this.timestamp);
 
   var hasWitnesses = this.hasWitnesses();
 
@@ -348,8 +349,8 @@ Transaction.prototype.fromBuffer = function(buffer) {
 
 Transaction.prototype.fromBufferReader = function(reader) {
   $.checkArgument(!reader.finished(), 'No transaction data received');
-
   this.version = reader.readInt32LE();
+  this.timestamp = reader.readInt32LE();
   var sizeTxIns = reader.readVarintNum();
 
   // check for segwit
@@ -400,6 +401,7 @@ Transaction.prototype.toObject = Transaction.prototype.toJSON = function toObjec
   var obj = {
     hash: this.hash,
     version: this.version,
+    timestamp: this.timestamp,
     inputs: inputs,
     outputs: outputs,
     nLockTime: this.nLockTime
@@ -460,6 +462,7 @@ Transaction.prototype.fromObject = function fromObject(arg) {
   }
   this.nLockTime = transaction.nLockTime;
   this.version = transaction.version;
+  this.timestamp = transaction.timestamp;
   this._checkConsistency(arg);
   return this;
 };

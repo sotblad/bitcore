@@ -35,10 +35,10 @@ const stringifyForQuery = (object: any) =>
   );
 
 const consolidatedChainBase = (chain: Chain) =>
-  chain.code === 'BCH'
-    ? 'BCH/mainnet'
-    : chain.code === 'tBCH'
-      ? 'BCH/testnet'
+  chain.code === 'XVG'
+    ? 'XVG/mainnet'
+    : chain.code === 'tXVG'
+      ? 'XVG/testnet'
       : chain.code === 'BTC'
         ? 'BTC/mainnet'
         : chain.code === 'tBTC'

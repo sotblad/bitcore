@@ -1,5 +1,5 @@
 module.exports = {
-  basePath: '/bws/api',
+  basePath: '/vws/api',
   disableLogs: false,
   port: 3232,
 
@@ -21,7 +21,7 @@ module.exports = {
 
   storageOpts: {
     mongoDb: {
-      uri: 'mongodb://localhost:27017/bws',
+      uri: process.env.BWS_MONGODB_URI || 'mongodb://localhost:27017/bws',
     },
   },
   messageBrokerOpts: {
@@ -31,24 +31,14 @@ module.exports = {
     },
   },
   blockchainExplorerOpts: {
-    btc: {
+    xvg: {
       livenet: {
-        url: 'https://api.bitcore.io',
+        url: process.env.BWS_NODE_URL || 'http://localhost:3000',
       },
       testnet: {
-        url: 'https://api.bitcore.io',
+        url: process.env.BWS_NODE_URL || 'http://localhost:3000',
         regtestEnabled: false
       },
-    },
-    bch: {
-      livenet: {
-        url: 'https://api.bitcore.io',
-      },
-      testnet: {
-        // url: 'http://localhost:3000',
-        url: 'https://api.bitcore.io',
-      },
-
     },
   },
   pushNotificationsOpts: {

@@ -10,7 +10,8 @@ log.disableColor();
 
 const Bitcore = {
   btc: require('bitcore-lib'),
-  bch: require('bitcore-lib-cash')
+  bch: require('bitcore-lib-cash'),
+  xvg: require('bitcore-lib'),
 };
 
 const Common = require('../common');
@@ -18,10 +19,13 @@ const Constants = Common.Constants,
   Defaults = Common.Defaults,
   Utils = Common.Utils;
 
+const Stealth = require('bitcore-stealth');
+
 export interface ITxProposal {
   type: string;
   creatorName: string;
   createdOn: number;
+  timestamp: number;
   txid: string;
   id: string;
   walletId: string;
@@ -66,6 +70,7 @@ export class TxProposal {
   type: string;
   creatorName: string;
   createdOn: number;
+  timestamp: number;
   id: string;
   txid: string;
   walletId: string;
@@ -82,6 +87,8 @@ export class TxProposal {
     toAddress?: string;
     message?: string;
     script?: string;
+    ephemeralPrivKey: string;
+    stealth: string;
   }>;
   outputOrder: number[];
   walletM: number;
@@ -119,6 +126,7 @@ export class TxProposal {
 
     const now = Date.now();
     x.createdOn = Math.floor(now / 1000);
+    x.timestamp = x.createdOn;
     x.id = opts.id || Uuid.v4();
     x.walletId = opts.walletId;
     x.creatorId = opts.creatorId;
@@ -128,11 +136,24 @@ export class TxProposal {
     x.payProUrl = opts.payProUrl;
     x.changeAddress = opts.changeAddress;
     x.outputs = _.map(opts.outputs, (output) => {
-      return _.pick(output, ['amount', 'toAddress', 'message', 'script']);
+      return _.pick(output, ['amount', 'toAddress', 'message', 'script', 'stealth', 'ephemeralPrivKey']);
     });
-    x.outputOrder = _.range(x.outputs.length + 1);
-    if (!opts.noShuffleOutputs) {
-      x.outputOrder = _.shuffle(x.outputOrder);
+    let stealthAddresses =  _.filter(x.outputs, 'stealth');
+    if (stealthAddresses.length) {
+      x.outputOrder = _.range(x.outputs.length + stealthAddresses.length + 1);
+
+      // Add ephemeral private key
+      _.each(stealthAddresses, i => {
+        let ephemeral = Bitcore[x.coin].PrivateKey.fromRandom(x.network);
+        i.ephemeralPrivKey = ephemeral.toString();
+        let paymentAddress = new Stealth.Address(i.toAddress).toPaymentAddress(ephemeral);
+        i.toAddress = paymentAddress.toString();
+      });
+    } else {
+      x.outputOrder = _.range(x.outputs.length + 1);
+      if (!opts.noShuffleOutputs) {
+        x.outputOrder = _.shuffle(x.outputOrder);
+      }
     }
     x.walletM = opts.walletM;
     x.walletN = opts.walletN;
@@ -172,6 +193,7 @@ export class TxProposal {
 
     x.version = obj.version;
     x.createdOn = obj.createdOn;
+    x.timestamp = obj.createdOn;
     x.id = obj.id;
     x.walletId = obj.walletId;
     x.creatorId = obj.creatorId;
@@ -234,7 +256,8 @@ export class TxProposal {
   }
 
   _buildTx() {
-    const t = new Bitcore[this.coin].Transaction();
+    const t = new Stealth.Transaction();
+    t.timestamp = this.timestamp;
 
     $.checkState(
       Utils.checkValueInCollection(this.addressType, Constants.SCRIPT_TYPES)
@@ -265,7 +288,7 @@ export class TxProposal {
           })
         );
       } else {
-        t.to(o.toAddress, o.amount);
+        t.to(o.toAddress, o.amount, o.ephemeralPrivKey, o.stealth);
       }
     });
 
@@ -362,7 +385,7 @@ export class TxProposal {
 
   getEstimatedFee() {
     $.checkState(_.isNumber(this.feePerKb));
-    const fee = (this.feePerKb * this.getEstimatedSize()) / 1000;
+    const fee = (Math.ceil(this.getEstimatedSize() / 1000) * 1000) * this.feePerKb / 1000;
     return parseInt(fee.toFixed(0));
   }
 

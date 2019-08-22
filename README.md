@@ -1,6 +1,6 @@
 # Bitcore
 
-**Infrastructure to build Bitcoin and blockchain-based applications for the next generation of financial technology.**
+**Infrastructure to build Verge and blockchain-based applications for the next generation of financial technology.**
 
 ## Getting Started
 
@@ -12,7 +12,8 @@
 ### Checkout the repo
 
 ```sh
-git clone git@github.com:bitpay/bitcore.git
+git clone git@github.com:vergecurrency/bitcore.git
+cd bitcore
 git checkout master
 npm install
 ```
@@ -29,42 +30,9 @@ npm install
 {
   "bitcoreNode": {
     "chains": {
-      "BTC": {
+      "XVG": {
         "mainnet": {
           "chainSource": "p2p",
-          "trustedPeers": [
-            {
-              "host": "127.0.0.1",
-              "port": 20008
-            }
-          ],
-          "rpc": {
-            "host": "127.0.0.1",
-            "port": 20009,
-            "username": "username",
-            "password": "password"
-          }
-        },
-        "regtest": {
-          "chainSource": "p2p",
-          "trustedPeers": [
-            {
-              "host": "127.0.0.1",
-              "port": 20020
-            }
-          ],
-          "rpc": {
-            "host": "127.0.0.1",
-            "port": 20021,
-            "username": "username",
-            "password": "password"
-          }
-        }
-      },
-      "BCH": {
-        "mainnet": {
-          "parentChain": "BTC",
-          "forkHeight": 478558,
           "trustedPeers": [
             {
               "host": "127.0.0.1",
@@ -77,21 +45,6 @@ npm install
             "username": "username",
             "password": "password"
           }
-        },
-        "regtest": {
-          "chainSource": "p2p",
-          "trustedPeers": [
-            {
-              "host": "127.0.0.1",
-              "port": 30020
-            }
-          ],
-          "rpc": {
-            "host": "127.0.0.1",
-            "port": 30021,
-            "username": "username",
-            "password": "password"
-          }
         }
       }
     }
@@ -101,43 +54,39 @@ npm install
 
 </details>
 
-### 2. Setup Bitcoin Node
+### 2. Setup Verge Node
 
 <details>
-<summary>Example Bitcoin Mainnet Config</summary>
+<summary>Example Verge Mainnet Config</summary>
 
 ```sh
-whitelist=127.0.0.1
 txindex=0
 listen=1
 server=1
-irc=1
-upnp=1
 
 # Make sure port & rpcport matches the
-# bitcore.config.json ports for BTC mainnet
+# bitcore.config.json ports for XVG mainnet
 
-# if using Bitcoin Core v0.17+ prefix
+# if using Verge Core v5+ prefix
 # [main]
 
-port=20008
-rpcport=20009
-rpcallowip=127.0.0.1
+port=21102
+rpcport=20102
 
-rpcuser=username
-rpcpassword=password
+rpcuser=RPCUSER
+rpcpassword=RPCPASS
 ```
 
 </details>
 
-### 3. Run Bitcoin node
+### 3. Run Verge node
 
 <details>
-<summary>Example Starting a Bitcoin Node</summary>
-
-```sh
-# Path to your bitcoin application and path to the config above
-/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt -datadir=/Users/username/blockchains/bitcoin-core/networks/mainnet/
+<summary><b>Example Starting a Verge Node</b></summary>
+  
+```
+# Path to your verge application and path to the config above
+/Applications/Verge-Qt.app/Contents/MacOS/Verge-Qt -datadir=/Users/username/blockchains/verge-core/networks/mainnet/
 ```
 
 </details>
@@ -147,6 +96,8 @@ rpcpassword=password
 ```sh
 npm run node
 ```
+
+If you'd like to use Docker go to [the docker manual](https://github.com/vergecurrency/bitcore/blob/master/Docker.md).
 
 ## Applications
 
@@ -176,10 +127,10 @@ npm run node
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/bitpay/bitcore/blob/master/Contributing.md) on the main bitcore repo for information about how to contribute.
+See [CONTRIBUTING.md](https://github.com/vergecurrency/bitcore/blob/master/Contributing.md) on the main bitcore repo for information about how to contribute.
 
 ## License
 
-Code released under [the MIT license](https://github.com/bitpay/bitcore/blob/master/LICENSE).
+Code released under [the MIT license](https://github.com/vergecurrency/bitcore/blob/master/LICENSE).
 
 Copyright 2013-2019 BitPay, Inc. Bitcore is a trademark maintained by BitPay, Inc.

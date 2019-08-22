@@ -15,7 +15,8 @@ var config = require('../test-config');
 var Bitcore = require('bitcore-lib');
 var Bitcore_ = {
   btc: Bitcore,
-  bch: require('bitcore-lib-cash')
+  bch: require('bitcore-lib-cash'),
+  xvg: Bitcore,
 };
 
 
@@ -1112,7 +1113,7 @@ describe('Wallet service', function() {
           category: 'critical',
           app: 'bitpay',
           priority: 1
-        }]); 
+        }]);
         done();
       });
     });
@@ -1132,7 +1133,7 @@ describe('Wallet service', function() {
             dismissible: true,
             category: 'critical',
             app: 'bitpay',
-          }); 
+          });
           done();
         });
       });
@@ -5732,7 +5733,7 @@ describe('Wallet service', function() {
           txProposalId: txpid
         }, function(err, txp) {
           should.not.exist(err);
-         
+
           should.exist(txp.raw);
           // used to be like this. No sure why we won't like raw to be shown.
           //should.not.exist(txp.raw);

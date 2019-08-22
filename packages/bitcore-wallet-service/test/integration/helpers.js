@@ -17,7 +17,8 @@ var config = require('../test-config');
 var Bitcore = require('bitcore-lib');
 var Bitcore_ = {
   btc: Bitcore,
-  bch: require('bitcore-lib-cash')
+  bch: require('bitcore-lib-cash'),
+  xvg: Bitcore,
 };
 
 var Common = require('../../ts_build/lib/common');

@@ -25,8 +25,10 @@ const EmailValidator = require('email-validator');
 const Bitcore = require('bitcore-lib');
 const Bitcore_ = {
   btc: Bitcore,
-  bch: require('bitcore-lib-cash')
+  bch: require('bitcore-lib-cash'),
+  xvg: Bitcore
 };
+const Stealth = require('bitcore-stealth');
 
 const Common = require('./common');
 const Utils = Common.Utils;
@@ -1779,6 +1781,8 @@ export class WalletService {
 
         if (_.isEmpty(inputs)) return cb(null, info);
 
+        opts.feePerKb = Defaults.MIN_FEE_PER_KB;
+
         this._getFeePerKb(wallet, opts, (err, feePerKb) => {
           if (err) return cb(err);
 
@@ -1794,8 +1798,7 @@ export class WalletService {
           });
 
           const baseTxpSize = txp.getEstimatedSize();
-          const sizePerInput = txp.getEstimatedSizeForSingleInput();
-          const feePerInput = (sizePerInput * txp.feePerKb) / 1000;
+          const feePerInput = 0;
 
           const partitionedByAmount = _.partition(inputs, (input) => {
             return input.satoshis > feePerInput;
@@ -1806,7 +1809,7 @@ export class WalletService {
           inputs = partitionedByAmount[0];
 
           _.each(inputs, (input, i) => {
-            const sizeInKb = (baseTxpSize + (i + 1) * sizePerInput) / 1000;
+            const sizeInKb = (baseTxpSize + (i + 1)) / 1000;
             if (sizeInKb > Defaults.MAX_TX_SIZE_IN_KB) {
               info.utxosAboveMaxSize = inputs.length - i;
               info.amountAboveMaxSize = _.sumBy(_.slice(inputs, i), 'satoshis');
@@ -2045,9 +2048,8 @@ export class WalletService {
 
     const txpAmount = txp.getTotalAmount();
     const baseTxpSize = txp.getEstimatedSize();
-    const baseTxpFee = (baseTxpSize * txp.feePerKb) / 1000;
-    const sizePerInput = txp.getEstimatedSizeForSingleInput();
-    const feePerInput = (sizePerInput * txp.feePerKb) / 1000;
+    const baseTxpFee = (Math.ceil(baseTxpSize / 1000) * 1000) * txp.feePerKb / 1000;
+    const feePerInput = 0;
 
     const sanitizeUtxos = (utxos) => {
       const excludeIndex = _.reduce(
@@ -2131,8 +2133,8 @@ export class WalletService {
         total += input.satoshis;
         netTotal += netInputAmount;
 
-        const txpSize = baseTxpSize + selected.length * sizePerInput;
-        fee = Math.round(baseTxpFee + selected.length * feePerInput);
+        const txpSize = baseTxpSize;
+        fee = baseTxpSize;
 
         // log.debug('Tx size: ' + Utils.formatSize(txpSize) + ', Tx fee: ' + Utils.formatAmountInBtc(fee));
 
@@ -2186,7 +2188,7 @@ export class WalletService {
           if (changeAmount > 0 && changeAmount <= dustThreshold) {
             // log.debug('Change below dust threshold (' + Utils.formatAmountInBtc(dustThreshold) + '). Incrementing fee to remove change.');
             // Remove dust change by incrementing fee
-            fee += changeAmount;
+            // fee += changeAmount;
           }
 
           return false;
@@ -2201,7 +2203,7 @@ export class WalletService {
           const input = _.head(bigInputs);
           // log.debug('Using big input: ', Utils.formatUtxos(input));
           total = input.satoshis;
-          fee = Math.round(baseTxpFee + feePerInput);
+          fee = Math.round(baseTxpFee);
           netTotal = total - fee;
           selected = [input];
         }
@@ -2356,7 +2358,7 @@ export class WalletService {
     );
   }
 
-  _validateAddr(wallet, inaddr, opts) {
+  _validateAddr(wallet, inaddr, opts, output?) {
     const A = Bitcore_[wallet.coin].Address;
 
     let addr: {
@@ -2366,7 +2368,12 @@ export class WalletService {
     try {
       addr = new A(inaddr);
     } catch (ex) {
-      return Errors.INVALID_ADDRESS;
+      try {
+        addr = new Stealth.Address(inaddr);
+        output.stealth = true;
+      } catch (ex) {
+        return Errors.INVALID_ADDRESS;
+      }
     }
     if (addr.network.toString() != wallet.network) {
       return Errors.INCORRECT_ADDRESS_NETWORK;
@@ -2391,13 +2398,14 @@ export class WalletService {
     for (let i = 0; i < opts.outputs.length; i++) {
       const output = opts.outputs[i];
       output.valid = false;
-
-      const addrErr = this._validateAddr(wallet, output.toAddress, opts);
-      if (addrErr) return addrErr;
+      output.stealth = false;
 
       if (!checkRequired(output, ['toAddress', 'amount'])) {
         return new ClientError('Argument missing in output #' + (i + 1) + '.');
       }
+
+      const addrErr = this._validateAddr(wallet, output.toAddress, opts, output);
+      if (addrErr) return addrErr;
 
       if (
         !_.isNumber(output.amount) ||
@@ -2536,7 +2544,7 @@ export class WalletService {
           });
           opts.returnOrigAddrOutputs = false;
           _.each(opts.outputs, x => {
-            if (!x.toAddress) return;
+            if (!x.toAddress || x.stealth) return;
 
             let newAddr;
             try {
@@ -2726,6 +2734,9 @@ export class WalletService {
                       );
                     }
                   }
+
+                  // Set the tx fee.
+                  txp.estimateFee();
 
                   this.storage.storeTx(wallet.id, txp, next);
                 }

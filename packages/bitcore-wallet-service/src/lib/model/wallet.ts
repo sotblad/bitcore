@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { Address } from './address';
 import { AddressManager } from './addressmanager';
 import { Copayer } from './copayer';
+import { IStealthAddress, StealthAddress } from './stealthaddress';
 
 const log = require('npmlog');
 const $ = require('preconditions').singleton();
@@ -13,7 +14,8 @@ const Constants = Common.Constants,
   Utils = Common.Utils;
 const Bitcore = {
   btc: require('bitcore-lib'),
-  bch: require('bitcore-lib-cash')
+  bch: require('bitcore-lib-cash'),
+  xvg: require('bitcore-lib'),
 };
 
 export interface IWallet {
@@ -40,6 +42,7 @@ export interface IWallet {
   beAuthPublicKey2: string;
   nativeCashAddr: boolean;
   isTestnet?: boolean;
+  stealth?: IStealthAddress;
 }
 
 export class Wallet {
@@ -66,6 +69,7 @@ export class Wallet {
   beAuthPublicKey2: string;
   nativeCashAddr: boolean;
   isTestnet?: boolean;
+  stealth?: IStealthAddress;
 
   scanning: boolean;
   static COPAYER_PAIR_LIMITS = {};
@@ -154,6 +158,10 @@ export class Wallet {
     x.beAuthPublicKey2 = obj.beAuthPublicKey2;
 
     x.nativeCashAddr = obj.nativeCashAddr;
+
+    if (obj.stealth) {
+      x.stealth = StealthAddress.fromObj(obj.stealth);
+    }
 
     return x;
   }

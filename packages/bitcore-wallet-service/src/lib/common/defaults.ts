@@ -1,10 +1,10 @@
 'use strict';
 
 module.exports = {
-  MIN_FEE_PER_KB: 0,
-  MAX_FEE_PER_KB: 10000 * 1000, // 10k sat/b
-  MIN_TX_FEE: 0,
-  MAX_TX_FEE: 0.1 * 1e8,
+  MIN_FEE_PER_KB: 100000,
+  MAX_FEE_PER_KB: 1000000, // 10k sat/b
+  MIN_TX_FEE: 1000000,
+  MAX_TX_FEE: 1000000,
   MAX_TX_SIZE_IN_KB: 100,
 
   MAX_KEYS: 100,
@@ -58,7 +58,14 @@ module.exports = {
         nbBlocks: 2,
         defaultValue: 2000
       }
-    ]
+    ],
+    xvg: [
+      {
+        name: 'normal',
+        nbBlocks: 2,
+        defaultValue: 100000,
+      }
+    ],
   },
 
   // How many levels to fallback to if the value returned by the network for a given nbBlocks is -1
@@ -102,7 +109,7 @@ module.exports = {
   // Cache time for blockchain height (in ms)
   // this is actually erased on 'new block' notifications
   // so, 30m seems fine
-  BLOCKHEIGHT_CACHE_TIME: 30 * 60 * 1000,
+  BLOCKHEIGHT_CACHE_TIME: 15,
 
   // Cache time fee levels (in ms)
   FEE_LEVEL_CACHE_DURATION: 6 * 60 * 1000,
