@@ -122,6 +122,7 @@ helpers.createAndJoinWallet = function(clients, m, n, opts, cb) {
     coin: coin,
     network: network,
     singleAddress: !!opts.singleAddress,
+    doNotCheck: true,
   }, function(err, secret) {
     should.not.exist(err);
 
@@ -133,6 +134,7 @@ helpers.createAndJoinWallet = function(clients, m, n, opts, cb) {
 
         function(next) {
           async.each(_.range(1, n), function(i, cb) {
+
             clients[i].seedFromRandomWithMnemonic({
               coin: coin,
               network: network
@@ -327,28 +329,32 @@ helpers.newDb = (extra, cb) => {
   });
 }
 
+console.log('[api.test.js.331]'); // TODO
 var db;
 describe('client API', function() {
-  var clients, app, sandbox ;
+  var clients, app, sandbox, storage ;
   var i = 0;
 
   before((done) => {
     helpers.newDb('', (err, in_db) => {
       db = in_db;
+      storage = new Storage({
+        db: db,
+      });
+      Storage.createIndexes(db);
       return done(err);
     });
   });
 
   beforeEach(function(done) {
-    var storage = new Storage({
-      db: db,
-    });
+
     var expressApp = new ExpressApp();
     expressApp.start({
         ignoreRateLimiter: true,
         storage: storage,
         blockchainExplorer: blockchainExplorerMock,
         disableLogs: true,
+        doNotCheckV8: true,
       },
       function() {
         app = expressApp.app;
@@ -437,6 +443,8 @@ describe('client API', function() {
         s2.load = sinon.stub().yields(null);
         var client = helpers.newClient(app);
         client.storage = s2;
+
+        client.seedFromRandomWithMnemonic({ network: 'testnet' });
         client.createWallet('1', '2', 1, 1, {
             network: 'testnet'
           },
@@ -465,6 +473,7 @@ describe('client API', function() {
         s2.load = sinon.stub().yields(null);
         var client = helpers.newClient(app);
         client.storage = s2;
+        client.seedFromRandomWithMnemonic({ network: 'testnet' });
         client.createWallet('1', '2', 1, 1, {
             network: 'testnet'
           },
@@ -493,6 +502,7 @@ describe('client API', function() {
         s2.load = sinon.stub().yields(null);
         var client = helpers.newClient(app);
         client.storage = s2;
+        client.seedFromRandomWithMnemonic({ network: 'testnet' });
         client.createWallet('1', '2', 1, 1, {
             network: 'testnet'
           },
@@ -516,6 +526,7 @@ describe('client API', function() {
 
     it('should handle critical errors (Case5)', function(done) {
       clients[0].request.r = helpers.stubRequest('some error');
+      clients[0].seedFromRandomWithMnemonic({ network: 'testnet' });
       clients[0].createWallet('mywallet', 'creator', 1, 2, {
         network: 'testnet'
       }, function(err, secret) {
@@ -1264,9 +1275,10 @@ describe('client API', function() {
       var xPriv = 'xprv9s21ZrQH143K3GJpoapnV8SFfukcVBSfeCficPSGfubmSFDxo1kuHnLisriDvSnRRuL2Qrg5ggqHKNVpxR86QEC8w35uxmGoggxtQTPvfUu';
       clients[0].seedFromExtendedPrivateKey(xPriv, {
         'coin': 'bch',
+        useLegacyCoinType: true,
       });
       clients[0].createWallet('mycashwallet', 'pepe', 1, 1, {
-        coin: 'bch'
+        coin: 'bch',
       }, function(err, secret) {
         should.not.exist(err);
 
@@ -1275,7 +1287,7 @@ describe('client API', function() {
           should.not.exist(err);
           x.coin.should.equal('bch');
           x.network.should.equal('livenet');
-          x.address.should.equal('CcJ4qUfyQ8x5NwhAeCQkrBSWVeXxXghcNz');
+          x.address.should.equal('qrvcdmgpk73zyfd8pmdl9wnuld36zh9n4gms8s0u59');
           done();
         })
       });
@@ -1310,6 +1322,8 @@ describe('client API', function() {
     });
     it('should fire event when wallet is complete', function(done) {
       var checks = 0;
+
+
       clients[0].on('walletCompleted', function(wallet) {
         wallet.name.should.equal('mywallet');
         wallet.status.should.equal('complete');
@@ -1317,6 +1331,10 @@ describe('client API', function() {
         clients[0].credentials.isComplete().should.equal(true);
         if (++checks == 2) done();
       });
+      clients[0].seedFromRandom({
+        network: 'testnet',
+      });
+
       clients[0].createWallet('mywallet', 'creator', 2, 2, {
         network: 'testnet'
       }, function(err, secret) {
@@ -1352,6 +1370,12 @@ describe('client API', function() {
     });
 
     it('should return wallet on successful join', function(done) {
+      clients[0].seedFromRandom({
+        network: 'testnet',
+      });
+
+
+
       clients[0].createWallet('mywallet', 'creator', 2, 2, {
         network: 'testnet'
       }, function(err, secret) {
@@ -1367,6 +1391,11 @@ describe('client API', function() {
     });
 
     it('should not allow to join wallet on bogus device', function(done) {
+      clients[0].seedFromRandom({
+        network: 'testnet',
+      });
+
+
       clients[0].createWallet('mywallet', 'creator', 2, 2, {
         network: 'testnet'
       }, function(err, secret) {
@@ -1467,6 +1496,9 @@ describe('client API', function() {
       });
     });
     it('should perform a dry join without actually joining', function(done) {
+      clients[0].seedFromRandom({
+      });
+
       clients[0].createWallet('mywallet', 'creator', 1, 2, {}, function(err, secret) {
         should.not.exist(err);
         should.exist(secret);
@@ -1483,6 +1515,10 @@ describe('client API', function() {
     });
 
     it('should return wallet status even if wallet is not yet complete', function(done) {
+      clients[0].seedFromRandom({
+        network: 'testnet'
+      });
+
       clients[0].createWallet('mywallet', 'creator', 1, 2, {
         network: 'testnet'
       }, function(err, secret) {
@@ -1499,7 +1535,12 @@ describe('client API', function() {
         });
       });
     });
+      
     it('should return status using v2 version', function(done) {
+      clients[0].seedFromRandom({
+        network: 'testnet'
+      });
+
       clients[0].createWallet('mywallet', 'creator', 1, 1, {
         network: 'testnet'
       }, function(err, secret) {
@@ -1513,6 +1554,10 @@ describe('client API', function() {
       });
     });
     it('should return extended status using v2 version', function(done) {
+      clients[0].seedFromRandom({
+        network: 'testnet'
+      });
+
       clients[0].createWallet('mywallet', 'creator', 1, 1, {
         network: 'testnet'
       }, function(err, secret) {
@@ -1529,6 +1574,10 @@ describe('client API', function() {
     });
 
     it('should store walletPrivKey', function(done) {
+      clients[0].seedFromRandom({
+        network: 'testnet'
+      });
+
       clients[0].createWallet('mywallet', 'creator', 1, 1, {
         network: 'testnet'
       }, function(err) {
@@ -1550,6 +1599,10 @@ describe('client API', function() {
     });
 
     it('should set walletPrivKey from BWS', function(done) {
+      clients[0].seedFromRandom({
+        network: 'testnet'
+      });
+
       clients[0].createWallet('mywallet', 'creator', 1, 1, {
         network: 'testnet'
       }, function(err) {
@@ -2789,7 +2842,7 @@ describe('client API', function() {
       });
 
       it('Should sign proposal', function(done) {
-        var toAddress = 'CfNCvxmKYzZsS78pDKKfrDd2doZt3w4jUs';
+        var toAddress = 'qran0w2c8x2n4wdr60s4nrle65s745wt4sakf9xa8e';
         var opts = {
           outputs: [{
             amount: 1e8,
@@ -2906,7 +2959,7 @@ describe('client API', function() {
         };
         clients[0].fetchPayPro(opts, function(err, paypro) {
           should.exist(err);
-          err.message.should.contain('Could not');
+          err.message.should.contain('match');
           done();
         });
       });
@@ -3158,7 +3211,7 @@ describe('client API', function() {
             should.exist(x0.address);
 
             // TODO change createAddress to /v4/, and remove this.
-            x0.address = Bitcore_['bch'].Address(x0.address).toString(true);
+            //x0.address = Bitcore_['bch'].Address(x0.address).toString(true);
             // ======
             blockchainExplorerMock.setUtxo(x0, 1, 2);
             blockchainExplorerMock.setUtxo(x0, 1, 2);
@@ -4188,6 +4241,7 @@ describe('client API', function() {
       });
     });
 
+
     describe('#validateKeyDerivation', function() {
       beforeEach(function(done) {
         helpers.createAndJoinWallet(clients, 1, 1, function() {
@@ -4572,6 +4626,57 @@ describe('client API', function() {
             });
           });
         });
+      });
+    });
+  });
+
+  describe('Mobility, backup & restore BCH ONLY', function() {
+    var importedClient = null, address;
+
+    beforeEach(function() {
+      importedClient = null;
+    });
+
+    it('should be able to restore a  useLegacyCoinType wallet', function(done) {
+
+      var check = function(x) {
+        x.credentials.getBaseAddressDerivationPath().should.equal('m/44\'/0\'/0\'');
+        x.credentials.xPrivKey.toString().should.equal('xprv9s21ZrQH143K3E71Wm5nrxuMdqCTMG6AM5Xyp4dJ3ZkUj2gEpfifT5Hc1cfqnycKooRpzoH4gjmAKDmGGaH2k2cSe29EcQSarveq6STBZZW');
+        x.credentials.xPubKey.toString().should.equal('xpub6DJEsBSYZrjsrHssifihdekpoWcKRHR6WVfbyk6Hhq1HxZSDoyEvT2pMHmSnNKEvdQNmfVqn1Ef1yWgYcrnhc3mSegUCbMvVJCPLYJ1PNen');
+      };
+
+      var m = 'pink net pet stove boy receive task nephew book spawn pull regret';
+      // first create a "old" bch wallet (coin = 0).
+      clients[0].seedFromMnemonic(m, {
+        network: 'livenet',
+        coin: 'bch',
+        useLegacyCoinType: 'true',
+      });
+      check(clients[0]);
+
+      clients[0].createWallet('mywallet', 'creator', 1, 1, {
+        coin: 'bch',
+        network: 'livenet',
+      }, function(err, secret) {
+        should.not.exist(err);
+        clients[0].createAddress(function(err, x) {
+          should.not.exist(err);
+          address = x.address;
+          var importedClient = helpers.newClient(app);
+          var spy = sinon.spy(importedClient, 'openWallet');
+          importedClient.importFromMnemonic(clients[0].getMnemonic(), {
+            network: 'livenet',
+            coin: 'bch',
+          }, function(err) {
+            should.not.exist(err);
+            check(importedClient);
+            importedClient.getMainAddresses({}, function(err, x) {
+              should.not.exist(err);
+              x[0].address.should.equal(address);
+              done();
+            });
+          });
+          });
       });
     });
   });
@@ -5196,7 +5301,7 @@ describe('client API', function() {
 
   var addrMap = {
     btc: ['1PuKMvRFfwbLXyEPXZzkGi111gMUCs6uE3','1GG3JQikGC7wxstyavUBDoCJ66bWLLENZC'],
-    bch: ['CfNCvxmKYzZsS78pDKKfrDd2doZt3w4jUs','CXivsT4p9F6Us1oQGfo6oJpKiDovJjRVUE']
+    bch: ['qran0w2c8x2n4wdr60s4nrle65s745wt4sakf9xa8e','qznkyz7hdd3jvkqc76zsf585dcp5czmz5udnlj26ya']
   };
   _.each(['bch', 'btc'], function(coin) {
     var addr= addrMap[coin];

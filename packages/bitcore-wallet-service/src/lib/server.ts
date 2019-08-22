@@ -39,6 +39,7 @@ const Errors = require('./errors/errordefinitions');
 
 let request = require('request');
 let initialized = false;
+let doNotCheckV8 = false;
 
 let lock;
 let storage;
@@ -125,6 +126,7 @@ export class WalletService {
    * @param {Object} opts
    * @param {Storage} [opts.storage] - The storage provider.
    * @param {Storage} [opts.blockchainExplorer] - The blockchainExporer provider.
+   * @param {Storage} [opts.doNotCheckV8] - only for testing
    * @param {Callback} cb
    */
   static initialize(opts, cb) {
@@ -133,6 +135,8 @@ export class WalletService {
     opts = opts || {};
     blockchainExplorer = opts.blockchainExplorer;
     blockchainExplorerOpts = opts.blockchainExplorerOpts;
+
+    doNotCheckV8 = opts.doNotCheckV8;
 
     if (opts.request) {
       request = opts.request;
@@ -389,15 +393,28 @@ export class WalletService {
 
   logw(...args) {
     if (!this) {
-      return log.info.apply(this, args);
+      return log.warn.apply(this, args);
     }
     if (!this.walletId) {
-      return log.info.apply(this, arguments);
+      return log.warn.apply(this, arguments);
     }
 
     const argz = [].slice.call(args);
     argz.unshift('<' + this.walletId + '>');
     log.warn.apply(this, argz);
+  }
+
+  logd(...args) {
+    if (!this) {
+      return log.verbose.apply(this, args);
+    }
+    if (!this.walletId) {
+      return log.verbose.apply(this, arguments);
+    }
+
+    const argz = [].slice.call(args);
+    argz.unshift('<' + this.walletId + '>');
+    log.verbose.apply(this, argz);
   }
 
   login(opts, cb) {
@@ -463,6 +480,18 @@ export class WalletService {
   createWallet(opts, cb) {
     let pubKey;
 
+    if (opts.coin === 'bch' && opts.n > 1) {
+      const version = Utils.parseVersion(this.clientVersion);
+      if (version && version.agent === 'bwc') {
+        if (version.major < 8 || (version.major === 8 && version.minor < 3)) {
+          return cb(new ClientError(
+            Errors.codes.UPGRADE_NEEDED,
+            'BWC clients < 8.3 are no longer supported for multisig BCH wallets.'
+          ));
+        }
+      }
+    }
+
     if (!checkRequired(opts, ['name', 'm', 'n', 'pubKey'], cb)) {
       return;
     }
@@ -491,8 +520,8 @@ export class WalletService {
 
     const derivationStrategy = Constants.DERIVATION_STRATEGIES.BIP44;
     const addressType = opts.n === 1
-        ? Constants.SCRIPT_TYPES.P2PKH
-        : Constants.SCRIPT_TYPES.P2SH;
+      ? Constants.SCRIPT_TYPES.P2PKH
+      : Constants.SCRIPT_TYPES.P2SH;
 
     try {
       pubKey = new Bitcore.PublicKey.fromString(opts.pubKey);
@@ -530,7 +559,7 @@ export class WalletService {
             nativeCashAddr: opts.nativeCashAddr
           });
           this.storage.storeWallet(wallet, (err) => {
-            this.logi('Wallet created', wallet.id, opts.network);
+            this.logd('Wallet created', wallet.id, opts.network);
             newWallet = wallet;
             return acb(err);
           });
@@ -1052,6 +1081,18 @@ export class WalletService {
         if (err) return cb(err);
         if (!wallet) return cb(Errors.WALLET_NOT_FOUND);
 
+        if (opts.coin === 'bch' && wallet.n > 1) {
+          const version = Utils.parseVersion(this.clientVersion);
+          if (version && version.agent === 'bwc') {
+            if (version.major < 8 || (version.major === 8 && version.minor < 3)) {
+              return cb(new ClientError(
+                Errors.codes.UPGRADE_NEEDED,
+                'BWC clients < 8.3 are no longer supported for multisig BCH wallets.'
+              ));
+            }
+          }
+        }
+
         if (opts.coin != wallet.coin) {
           return cb(
             new ClientError(
@@ -1245,15 +1286,15 @@ export class WalletService {
   }
 
   _store(wallet, address, cb, checkSync = false) {
-    this.storage.storeAddressAndWallet(wallet, address, err => {
+    this.storage.storeAddressAndWallet(wallet, address, (err, duplicate) => {
       if (err) return cb(err);
       this.syncWallet(
         wallet,
         err2 => {
           if (err2) {
-            log.warn('Error syncing v8 addresses: ', err2);
+            this.logw('Error syncing v8 addresses: ', err2);
           }
-          return cb();
+          return cb(null, duplicate);
         },
         !checkSync
       );
@@ -1275,15 +1316,18 @@ export class WalletService {
       try {
         address = wallet.createAddress(false);
       } catch (e) {
-        log.warn('Error creating address for ' + this.walletId, e);
+        this.logw('Error creating address', e);
         return cb('Bad xPub');
       }
 
       this._store(
         wallet,
         address,
-        (err) => {
+        (err, duplicate) => {
           if (err) return cb(err);
+
+          if (duplicate)
+            return cb(null, address);
 
           this._notify(
             'NewAddress',
@@ -1484,10 +1528,17 @@ export class WalletService {
             hash
           ) => {
             if (err) return next(err);
+
+            const dustThreshold = Bitcore_[wallet.coin].Transaction.DUST_AMOUNT;
             bc.getUtxos(wallet, height, (err, utxos) => {
               if (err) return next(err);
               if (utxos.length == 0) return cb(null, []);
-              allUtxos = utxos;
+
+              // filter out DUST
+              allUtxos = _.filter(utxos, (x) => {
+                return x.satoshis >= dustThreshold;
+              });
+
               utxoIndex = _.keyBy(allUtxos, utxoKey);
               return next();
             });
@@ -1540,7 +1591,7 @@ export class WalletService {
           const addressToPath = _.keyBy(allAddresses, 'address');
           _.each(allUtxos, (utxo) => {
             if (!addressToPath[utxo.address]) {
-              if (!opts.addresses) log.warn('Ignored UTXO!: ' + utxo.address);
+              if (!opts.addresses) this.logw('Ignored UTXO!: ' + utxo.address);
               return;
             }
             utxo.path = addressToPath[utxo.address].path;
@@ -1943,7 +1994,7 @@ export class WalletService {
         ) => {
           if (err) {
             if (oldvalues) {
-              log.warn(
+              this.logw(
                 '##  There was an error estimating fees... using old cached values'
               );
               return cb(null, oldvalues, true);
@@ -1985,13 +2036,13 @@ export class WalletService {
           }
 
           if (failed > 0) {
-            log.warn('Not caching default values. Failed:' + failed);
+            this.logw('Not caching default values. Failed:' + failed);
             return cb(null, values);
           }
 
           this.storage.storeGlobalCache(cacheKey, values, err => {
             if (err) {
-              log.warn('Could not store fee level cache');
+              this.logw('Could not store fee level cache');
             }
             return cb(null, values);
           });
@@ -2076,7 +2127,7 @@ export class WalletService {
         totalValueInUtxos - baseTxpFee - utxos.length * feePerInput;
 
       if (totalValueInUtxos < txpAmount) {
-        this.logi(
+        this.logd(
           'Total value in all utxos (' +
           Utils.formatAmountInBtc(totalValueInUtxos) +
           ') is insufficient to cover for txp amount (' +
@@ -2086,7 +2137,7 @@ export class WalletService {
         return cb(Errors.INSUFFICIENT_FUNDS);
       }
       if (netValueInUtxos < txpAmount) {
-        this.logi(
+        this.logd(
           'Value after fees in all utxos (' +
           Utils.formatAmountInBtc(netValueInUtxos) +
           ') is insufficient to cover for txp amount (' +
@@ -2099,7 +2150,7 @@ export class WalletService {
       const bigInputThreshold =
         txpAmount * Defaults.UTXO_SELECTION_MAX_SINGLE_UTXO_FACTOR +
         (baseTxpFee + feePerInput);
-      this.logi(
+      this.logd(
         'Big input threshold ' + Utils.formatAmountInBtc(bigInputThreshold)
       );
 
@@ -2307,7 +2358,7 @@ export class WalletService {
               _.sumBy(txp.inputs, 'satoshis') -
               _.sumBy(txp.outputs, 'amount') -
               txp.fee;
-            this.logi(
+            this.logd(
               'Successfully built transaction. Total fees: ' +
               Utils.formatAmountInBtc(txp.fee) +
               ', total change: ' +
@@ -2347,7 +2398,7 @@ export class WalletService {
         const backoffTime = Defaults.BACKOFF_TIME;
 
         if (timeSinceLastRejection <= backoffTime)
-          this.logi(
+          this.logd(
             'Not allowing to create TX: timeSinceLastRejection/backoffTime',
             timeSinceLastRejection,
             backoffTime
@@ -2619,6 +2670,7 @@ export class WalletService {
           return cb(null, _.head(addresses));
         });
       } else {
+
         if (opts.changeAddress) {
           const addrErr = this._validateAddr(wallet, opts.changeAddress, opts);
           if (addrErr) return cb(addrErr);
@@ -2719,8 +2771,9 @@ export class WalletService {
                   this._selectTxInputs(txp, opts.utxosToExclude, next);
                 },
                 (next) => {
-                  if (!changeAddress || wallet.singleAddress || opts.dryRun)
+                  if (!changeAddress || wallet.singleAddress || opts.dryRun || opts.changeAddress)
                     return next();
+
                   this._store(wallet, txp.changeAddress, next, true);
                 },
                 (next) => {
@@ -3390,16 +3443,12 @@ export class WalletService {
     });
   }
 
-  _normalizeTxHistory(walletId, txs: any[], bcHeight, cb) {
+  _normalizeTxHistory(walletId, txs: any[], dustThreshold, bcHeight, cb) {
     if (_.isEmpty(txs)) return cb(null, txs);
 
-    // This is PARTIAL history??  TODO TODO TODO TODO!~
     // console.log('[server.js.2915:txs:] IN NORMALIZE',txs); //TODO
     const now = Math.floor(Date.now() / 1000);
 
-    // TODO make this better...
-    // Group fees and moves
-    //
     // One fee per TXID
     const indexedFee: any = _.keyBy(
       _.filter(txs, { category: 'fee' } as any),
@@ -3415,13 +3464,17 @@ export class WalletService {
     const moves: { [txid: string]: ITxProposal } = {};
 
     // remove 'fees' and 'moves' (probably change addresses)
-    // also remove conflincting TXs (height=-3)
     txs = _.filter(txs, tx => {
       // double spend or error
+      // This should be shown on the client, so we dont remove it here
       //    if (tx.height && tx.height <= -3)
       //      return false;
 
       if (tx.category == 'receive') {
+
+        if (tx.satoshis < dustThreshold)
+          return false;
+
         const output = {
           address: tx.address,
           amount: Math.abs(tx.satoshis)
@@ -3506,9 +3559,9 @@ export class WalletService {
     fixMoves(err => {
       if (err) return cb(err);
 
-      const ret = _.map([].concat(txs), (tx) => {
+      const ret = _.filter(_.map([].concat(txs), (tx) => {
         const t = new Date(tx.blockTime).getTime() / 1000;
-        const c = bcHeight && tx.height >= 0 ? bcHeight - tx.height + 1 : 0;
+        const c = tx.height >= 0 && bcHeight >= tx.height ? bcHeight - tx.height + 1 : 0;
         const ret = {
           id: tx.id,
           txid: tx.txid,
@@ -3524,7 +3577,8 @@ export class WalletService {
           amount: 0,
           action: undefined,
           addressTo: undefined,
-          outputs: undefined
+          outputs: undefined,
+          dust: false,
         };
         switch (tx.category) {
           case 'send':
@@ -3536,7 +3590,8 @@ export class WalletService {
           case 'receive':
             ret.action = 'received';
             ret.outputs = tx.outputs;
-            ret.amount = Math.abs(tx.satoshis);
+            ret.amount = Math.abs(_.sumBy(tx.outputs, 'amount'));
+            ret.dust = ret.amount < dustThreshold;
             break;
           case 'move':
             ret.action = 'moved';
@@ -3552,6 +3607,10 @@ export class WalletService {
         // not available
         // inputs: inputs,
         return ret;
+
+        // filter out dust
+      }), (x) => {
+        return !x.dust;
       });
 
       // console.log('[server.js.2965:ret:] END',ret); //TODO
@@ -3585,7 +3644,7 @@ export class WalletService {
 
           this.storage.storeGlobalCache(cacheKey, values, err => {
             if (err) {
-              log.warn('Could not store bcheith cache');
+              this.logw('Could not store bc heigth cache');
             }
             return cb(null, values.current, values.hash);
           });
@@ -3596,7 +3655,7 @@ export class WalletService {
 
   updateWalletV8Keys(wallet) {
     if (!wallet.beAuthPrivateKey2) {
-      this.logi('Adding wallet beAuthKey...');
+      this.logd('Adding wallet beAuthKey');
       wallet.updateBEKeys();
     }
   }
@@ -3607,7 +3666,7 @@ export class WalletService {
     }
     const bc = this._getBlockchainExplorer(wallet.coin, wallet.network);
 
-    this.logi('Registering wallet');
+    this.logd('Registering wallet');
     bc.register(wallet, err => {
       if (err) {
         return cb(err);
@@ -3632,14 +3691,13 @@ export class WalletService {
         return cb(null, true);
       }
 
-      // TODO remove on native bch addr
       this.storage
-        .walletCheck({ walletId: wallet.id, bch: wallet.coin == 'bch' })
+        .walletCheck({ walletId: wallet.id })
         .then((localCheck: { sum: number }) => {
           bc.getCheckData(wallet, (err, serverCheck) => {
             // If there is an error, just ignore it (server does not support walletCheck)
             if (err) {
-              log.warn('Error at bitcore WalletCheck, ignoring' + err);
+              this.logw('Error at bitcore WalletCheck, ignoring' + err);
               return cb();
             }
 
@@ -3691,7 +3749,7 @@ export class WalletService {
           }
 
           const addressStr = _.map(addresses, 'address');
-          this.logi('Syncing addresses: ', addressStr.length);
+          this.logd('Syncing addresses: ', addressStr.length);
           bc.addAddresses(wallet, addressStr, err => {
             if (err) return cb(err);
 
@@ -3700,7 +3758,7 @@ export class WalletService {
         };
 
         syncAddr(addresses, err => {
-          if (skipCheck) return cb();
+          if (skipCheck || doNotCheckV8) return cb();
 
           this.checkWalletSync(bc, wallet, (err, isOK) => {
             // ignore err
@@ -3863,10 +3921,12 @@ export class WalletService {
           toAddress: output.address,
           amount: output.amount
         };
-        const txpOut = proposal.outputs.find(
-          o => o.toAddress === output.address && o.amount === output.amount
-        );
-        output.message = txpOut ? txpOut.message : null;
+        if (proposal.outputs) {
+          const txpOut = proposal.outputs.find(
+            o => o.toAddress === output.address && o.amount === output.amount
+          );
+          output.message = txpOut ? txpOut.message : null;
+        }
       });
       tx.customData = proposal.customData;
 
@@ -3966,12 +4026,12 @@ export class WalletService {
             if (!result) return next();
 
             if (result.streamKey != streamKey) {
-              log.info('Deleting old stream cache:' + result.streamKey);
+              log.debug('Deleting old stream cache:' + result.streamKey);
               return this.storage.clearTxHistoryStreamV8(wallet.id, next);
             }
 
             streamData = result.items;
-            log.info(`Using stream cache: ${streamData.length} txs`);
+            log.debug(`Using stream cache: ${streamData.length} txs`);
             return next();
           });
         },
@@ -3991,7 +4051,8 @@ export class WalletService {
           bc.getTransactions(wallet, startBlock, (err, txs) => {
             if (err) return cb(err);
 
-            this._normalizeTxHistory(wallet.id, txs, bcHeight, (
+            const dustThreshold = Bitcore_[wallet.coin].Transaction.DUST_AMOUNT;
+            this._normalizeTxHistory(wallet.id, txs, dustThreshold, bcHeight, (
               err,
               inTxs: any[]
             ) => {
@@ -4071,7 +4132,7 @@ export class WalletService {
 
               // update confirmations from height
               _.each(oldTxs, x => {
-                if (x.blockheight > 0) {
+                if (x.blockheight > 0 && bcHeight >= x.blockheight) {
                   x.confirmations = bcHeight - x.blockheight + 1;
                 }
               });
@@ -4226,11 +4287,11 @@ export class WalletService {
               if (res.txs.fromBc) {
                 p = 'Partial';
               }
-              this.logi(
+              this.logd(
                 `${p} History from cache ${from}/${to}: ${finalTxs.length} txs`
               );
             } else {
-              this.logi(
+              this.logd(
                 `History from bc ${from}/${to}: ${finalTxs.length} txs`
               );
             }
@@ -4383,7 +4444,7 @@ export class WalletService {
           addresses = addresses.concat(scannedAddresses);
 
           if (step > 1) {
-            this.logi(
+            this.logd(
               'Deriving addresses for scan steps gaps DERIVATOR:' + derivator.id
             );
 

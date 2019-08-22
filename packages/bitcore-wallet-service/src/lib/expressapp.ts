@@ -1,5 +1,6 @@
 import express from 'express';
 import _ from 'lodash';
+import * as log from 'npmlog';
 import { ClientError } from './errors/clienterror';
 import { WalletService } from './server';
 import { Stats } from './stats';
@@ -10,7 +11,6 @@ const RateLimit = require('express-rate-limit');
 const Common = require('./common');
 const Defaults = Common.Defaults;
 
-let log = require('npmlog');
 log.disableColor();
 log.debug = log.verbose;
 log.level = 'verbose';
@@ -27,6 +27,7 @@ export class ExpressApp {
    * @param opts.WalletService options for WalletService class
    * @param opts.basePath
    * @param opts.disableLogs
+   * @param opts.doNotCheckV8
    * @param {Callback} cb
    */
   start(opts, cb) {
@@ -556,7 +557,6 @@ export class ExpressApp {
       });
     });
 
-    //  router.get('/v2/feelevels/', estimateFeeLimiter, (req, res) => {
     router.get('/v2/feelevels/', (req, res) => {
       const opts: { coin?: string; network?: string } = {};
       if (req.query.coin) opts.coin = req.query.coin;
@@ -841,8 +841,8 @@ export class ExpressApp {
       let server;
       const opts = {
         code: req.params['code'],
-        provider: req.query.provider,
-        ts: +req.query.ts
+        coin: req.query.coin || 'btc',
+        ts: (req.query.ts ? +req.query.ts : null),
       };
       try {
         server = getServer(req, res);

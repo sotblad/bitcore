@@ -462,6 +462,7 @@ API.prototype._import = function(cb) {
 /**
  * Import from Mnemonics (language autodetected)
  * Can throw an error if mnemonic is invalid
+ * Will try compliant and non-compliantDerivation
  *
  * @param {String} BIP39 words
  * @param {Object} opts
@@ -479,29 +480,48 @@ API.prototype.importFromMnemonic = function(words, opts, cb) {
   var self = this;
 
   opts = opts || {};
+  opts.coin = opts.coin || 'btc';
 
-  function derive(nonCompliantDerivation) {
-    return Credentials.fromMnemonic(opts.coin || 'btc', opts.network || 'livenet', words, opts.passphrase, opts.account || 0, opts.derivationStrategy || Constants.DERIVATION_STRATEGIES.BIP44, {
+  function derive(nonCompliantDerivation, useLegacyCoinType) {
+    return Credentials.fromMnemonic(opts.coin, opts.network || 'livenet', words, opts.passphrase, opts.account || 0, opts.derivationStrategy || Constants.DERIVATION_STRATEGIES.BIP44, {
       nonCompliantDerivation: nonCompliantDerivation,
       entropySourcePath: opts.entropySourcePath,
       walletPrivKey: opts.walletPrivKey,
+      useLegacyCoinType, 
     });
   };
 
   try {
-    self.credentials = derive(false);
+    self.credentials = derive();
   } catch (e) {
     log.info('Mnemonic error:', e);
     return cb(new Errors.INVALID_BACKUP);
   }
   this.request.setCredentials(this.credentials);
-
+ 
   self._import(function(err, ret) {
     if (!err) return cb(null, ret);
     if (err instanceof Errors.INVALID_BACKUP) return cb(err);
     if (err instanceof Errors.NOT_AUTHORIZED || err instanceof Errors.WALLET_DOES_NOT_EXIST) {
-      var altCredentials = derive(true);
-      if (altCredentials.xPubKey.toString() == self.credentials.xPubKey.toString()) return cb(err);
+
+      var altCredentials;
+      // Only BTC wallets can be nonCompliantDerivation
+      switch(opts.coin) {
+        case 'btc':
+          // try using nonCompliantDerivation
+          altCredentials = derive(true);
+          break;
+        case 'bch':
+          // try using 0 as coin for BCH (old wallets)
+          altCredentials = derive(false, true);
+          break;
+        default:
+          return cb(err);
+      }
+
+      if (altCredentials.xPubKey.toString() == self.credentials.xPubKey.toString()) 
+        return cb(err);
+
       self.credentials = altCredentials;
       self.request.setCredentials(self.credentials);
       return self._import(cb);
@@ -604,9 +624,10 @@ API.prototype.getBalanceFromPrivateKey = function(privateKey, coin, cb) {
   var B = Bitcore_[coin];
  
   var privateKey = new B.PrivateKey(privateKey);
-  var address = privateKey.publicKey.toAddress();
+  var address = privateKey.publicKey.toAddress().toString(true);
+
   self.getUtxos({
-    addresses: coin == 'bch' ? address.toLegacyAddress() : address.toString(),
+    addresses: address,
   }, function(err, utxos) {
     if (err) return cb(err);
     return cb(null, _.sumBy(utxos, 'satoshis'));
@@ -621,13 +642,13 @@ API.prototype.buildTxFromPrivateKey = function(privateKey, destinationAddress, o
   var coin = opts.coin || 'btc';
   var B = Bitcore_[coin];
   var privateKey = B.PrivateKey(privateKey);
-  var address = privateKey.publicKey.toAddress();
+  var address = privateKey.publicKey.toAddress().toString(true);
 
   async.waterfall([
 
     function(next) {
       self.getUtxos({
-        addresses: coin == 'bch' ?  address.toLegacyAddress() : address.toString(),
+        addresses: address,
       }, function(err, utxos) {
         return next(err, utxos);
       });
@@ -1055,7 +1076,7 @@ API.prototype._checkKeyDerivation = function() {
  * @param cb
  * @return {undefined}
  */
-API.prototype.createWallet = function(walletName, copayerName, m, n, opts, cb) {
+API.prototype.createWallet = function(walletName, copayerName, m, n, opts, cb) { 
   var self = this;
 
   if (!self._checkKeyDerivation()) return cb(new Error('Cannot create new wallet'));
@@ -1070,16 +1091,10 @@ API.prototype.createWallet = function(walletName, copayerName, m, n, opts, cb) {
   if (!_.includes(['testnet', 'livenet'], network)) return cb(new Error('Invalid network'));
 
   if (!self.credentials) {
-    log.info('Generating new keys');
-    self.seedFromRandom({
-      coin: coin,
-      network: network
-    });
-  } else {
-    log.info('Using existing keys');
+    return cb(new Error('Generate keys first using seedFrom*'));
   }
 
-  if (coin != self.credentials.coin) {
+  if (coin != self.credentials.coin) { 
     return cb(new Error('Existing keys were created for a different coin'));
   }
 
@@ -1505,7 +1520,7 @@ API.prototype.createTxProposal = function(opts, cb) {
 
   var args = self._getCreateTxProposalArgs(opts);
 
-  self.request.post('/v2/txproposals/', args, function(err, txp) {
+  self.request.post('/v3/txproposals/', args, function(err, txp) {
     if (err) return cb(err);
 
     self._processTxps(txp);
@@ -1539,7 +1554,7 @@ API.prototype.publishTxProposal = function(opts, cb) {
     proposalSignature: Utils.signMessage(hash, self.credentials.requestPrivKey)
   };
 
-  var url = '/v1/txproposals/' + opts.txp.id + '/publish/';
+  var url = '/v2/txproposals/' + opts.txp.id + '/publish/';
   self.request.post(url, args, function(err, txp) {
     if (err) return cb(err);
     self._processTxps(txp);
@@ -1570,7 +1585,7 @@ API.prototype.createAddress = function(opts, cb) {
 
   opts = opts || {};
 
-  self.request.post('/v3/addresses/', opts, function(err, address) {
+  self.request.post('/v4/addresses/', opts, function(err, address) {
     if (err) return cb(err);
 
     if (!Verifier.checkAddress(self.credentials, address)) {
@@ -1667,7 +1682,7 @@ API.prototype.getTxProposals = function(opts, cb) {
 
   var self = this;
 
-  self.request.get('/v1/txproposals/', function(err, txps) {
+  self.request.get('/v2/txproposals/', function(err, txps) {
     if (err) return cb(err);
 
     self._processTxps(txps);
@@ -1753,7 +1768,7 @@ API.prototype.signTxProposal = function(txp, password, cb) {
 
   self.getPayPro(txp, function(err, paypro) {
     if (err) return cb(err);
-
+ 
     var isLegit = Verifier.checkTxProposal(self.credentials, txp, {
       paypro: paypro,
     });
@@ -2208,7 +2223,7 @@ API.prototype.getTxNotes = function(opts, cb) {
  * @param {Object} opts
  * @param {string} opts.code - Currency ISO code.
  * @param {Date} [opts.ts] - A timestamp to base the rate on (default Date.now()).
- * @param {String} [opts.provider] - A provider of exchange rates (default 'BitPay').
+ * @param {String} [opts.coin] - Coin (detault: 'btc')
  * @returns {Object} rates - The exchange rate.
  */
 API.prototype.getFiatRate = function(opts, cb) {
@@ -2220,7 +2235,7 @@ API.prototype.getFiatRate = function(opts, cb) {
 
   var args = [];
   if (opts.ts) args.push('ts=' + opts.ts);
-  if (opts.provider) args.push('provider=' + opts.provider);
+  if (opts.coin) args.push('coin=' + opts.coin);
   var qs = '';
   if (args.length > 0) {
     qs = '?' + args.join('&');
