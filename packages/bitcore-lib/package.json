@@ -1,5 +1,5 @@
 {
-  "name": "bitcore-lib",
+  "name": "bitcore-lib-xvg",
   "version": "8.1.1",
   "description": "A pure and powerful JavaScript Bitcoin library.",
   "author": "BitPay <dev@bitpay.com>",
@@ -29,7 +29,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/bitpay/bitcore-lib.git"
+    "url": "https://github.com/vergecurrency/bitcore/tree/master/packages/bitcore-lib"
   },
   "browser": {
     "request": "browser-request"
