@@ -125,7 +125,6 @@ export class Wallet {
         : null
       : opts.nativeCashAddr;
 
-
     return x;
   }
 
