@@ -363,7 +363,7 @@ bitcore-lib-cash@^8.6.0:
     inherits "=2.0.1"
     lodash "=4.17.11"
 
-bitcore-lib@^8.1.0, bitcore-lib@^8.1.1, bitcore-lib@^8.6.0:
+bitcore-lib@^8.1.1, bitcore-lib@^8.6.0:
   version "8.6.0"
   resolved "https://registry.yarnpkg.com/bitcore-lib/-/bitcore-lib-8.6.0.tgz#d7fc7c1815916f2914a3feb04227d5d10830e0d5"
   integrity sha512-fEMx2WeHRQGaGy72CBO8RQu7Eunl2MgUfrBVEOVX2qcQtfvtYTVE4KK7L7CPlJcD8YUPZYaWKOMBTVBiB8B8Bg==
@@ -390,13 +390,13 @@ bitcore-lib@^8.1.0, bitcore-lib@^8.1.1, bitcore-lib@^8.6.0:
 "bitcore-mnemonic@file:../bitcore-mnemonic":
   version "8.1.1"
   dependencies:
-    bitcore-lib "file:../../../../../Library/Caches/Yarn/v4/npm-bitcore-mnemonic-8.1.1-71e3024e-66b6-4a00-9e98-31b1daa8e95f-1567969336640/node_modules/bitcore-lib"
+    bitcore-lib "file:../../../../../Library/Caches/Yarn/v4/npm-bitcore-mnemonic-8.1.1-edbf4194-76f0-4ed6-9d60-bddd88b33fc0-1568046439942/node_modules/bitcore-lib"
     unorm "^1.4.1"
 
 "bitcore-stealth@file:../bitcore-stealth":
   version "0.0.2"
   dependencies:
-    bitcore-lib "^8.1.0"
+    bitcore-lib "file:../../../../../Library/Caches/Yarn/v4/npm-bitcore-stealth-0.0.2-5ad4242f-41f3-4f26-98dc-cbce09d4d0cf-1568046439932/node_modules/bitcore-lib"
     lodash "^4.17.11"
 
 bitcore-wallet-service@^8.1.1:
