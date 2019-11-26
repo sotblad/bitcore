@@ -26,10 +26,10 @@ fi
 #
 # Downloading bootstrap file
 #
-printf "** Downloading bootstrap file ***\n"
-cd ${DATA}
-wget https://bitcore.cc/bootstrap.tar.gz
-tar -xvzf bootstrap.tar.gz
-rm bootstrap.tar.gz
+#printf "** Downloading bootstrap file ***\n"
+#cd ${DATA}
+#wget https://bitcore.cc/bootstrap.tar.gz
+#tar -xvzf bootstrap.tar.gz
+#rm bootstrap.tar.gz
 
 exec bitcored -datadir=${DATA} -conf=${CONF} "$@"
