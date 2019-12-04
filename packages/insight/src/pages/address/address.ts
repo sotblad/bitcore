@@ -50,7 +50,7 @@ export class AddressPage {
 
   public ionViewWillLoad(): void {
 
-    if(this.chainNetwork.chain === 'BTC' || this.chainNetwork.chain === 'BCH') {
+    if(this.chainNetwork.chain === 'BTC' || this.chainNetwork.chain === 'BCH') || this.chainNetwork.chain === 'BTX') {
       this.events.subscribe('TransactionList', (d: any) => {
         this.nroTransactions = d.length;
       });
