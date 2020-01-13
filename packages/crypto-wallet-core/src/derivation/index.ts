@@ -30,13 +30,9 @@ export interface IDeriver {
 const derivers: { [chain: string]: IDeriver } = {
   BTC: new BtcDeriver(),
   BCH: new BchDeriver(),
-<<<<<<< HEAD
+  BTX: new BtxDeriver(),
   ETH: new EthDeriver(),
   XRP: new XrpDeriver()
-=======
-  BTX: new BtxDeriver(),
-  ETH: new EthDeriver()
->>>>>>> 4714973... Add BTX support for crypto-wallet-core
 };
 
 export class DeriverProxy {
