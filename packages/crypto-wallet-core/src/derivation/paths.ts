@@ -8,7 +8,8 @@ export const Paths = {
     livenet: "m/44'/145'/"
   },
   BTX: {
-    mainnet: `m/44'/160'/0'`
+    mainnet: "m/44'/160'/",
+    livenet: "m/44'/160'/"
   },
   ETH: {
     mainnet: "m/44'/60'/",

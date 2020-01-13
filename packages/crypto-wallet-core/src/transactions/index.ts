@@ -1,7 +1,7 @@
 import { BCHTxProvider } from './bch';
 import { BTCTxProvider } from './btc';
-import { ERC20TxProvider } from './erc20';
 import { BTXTxProvider } from './btx';
+import { ERC20TxProvider } from './erc20';
 import { ETHTxProvider } from './eth';
 import { XRPTxProvider } from './xrp';
 
