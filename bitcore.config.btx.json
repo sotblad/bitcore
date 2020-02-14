@@ -1,5 +1,6 @@
 {
   "bitcoreNode": {
+    "modules": ["./bitcore"],
     "services": {
       "api": {
         "wallets": {
