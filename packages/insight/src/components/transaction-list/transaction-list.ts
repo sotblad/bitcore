@@ -105,6 +105,7 @@ export class TransactionListComponent implements OnInit {
       tx.txid = txid;
       tx.vin = inputs.filter(input => input.spentTxid === txid);
       tx.vout = outputs.filter(output => output.mintTxid === txid);
+      tx.blockheight = tx.vout[0].mintHeight;
       tx.fee = this.txProvider.getFee(tx);
       tx.valueOut = tx.vout
         .filter(output => output.mintTxid === txid)
@@ -121,6 +122,7 @@ export class TransactionListComponent implements OnInit {
       tx.vin = txidCoins.inputs.filter(input => input.spentTxid === txid);
       tx.vout = txidCoins.outputs.filter(output => output.mintTxid === txid);
       tx.fee = this.txProvider.getFee(tx);
+      tx.blockheight = tx.vout[0].mintHeight;
       tx.valueOut = tx.vout
         .filter(output => output.mintTxid === txid)
         .reduce((a, b) => a + b.value, 0);
@@ -143,7 +145,7 @@ export class TransactionListComponent implements OnInit {
   }
 
   public loadMore(infiniteScroll) {
-    if (this.queryType === 'blockHash') {
+    if (this.queryType === 'blockHash' && this.chainNetwork.chain === 'BTC' || this.chainNetwork.chain === 'BCH' || this.chainNetwork.chain === 'BTX') {
       this.fetchBlockTxCoinInfo(this.blockPageNum);
       this.limit += this.chunkSize;
     } else {

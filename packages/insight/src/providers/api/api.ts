@@ -16,10 +16,12 @@ export interface NetworkSettings {
 }
 
 const CurrentEnv = process.env.ENV || 'dev';
+const BtxApiPrefix = process.env.API_PREFIX;
 
 const EnvApiHosts: { [env: string]: { [chain: string]: string } } = {
   prod: {
     default: 'https://api.bitcore.io/api',
+    BTX: BtxApiPrefix,
     ETH: 'https://api-eth.bitcore.io/api'
   },
   dev: { default: '/api' }

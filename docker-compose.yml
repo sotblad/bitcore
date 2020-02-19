@@ -30,7 +30,6 @@ services:
       - 8555
       - 8556 
     volumes:
-      #- bitcored-storage:/data
       - /home/bitcore:/data
 
   mongodb:
@@ -45,7 +44,6 @@ services:
     expose:
       - 27017
     volumes:
-      #- mongodb-storage:/data/db
       - /home/mongodb:/data/db
 
   bitcore-node:
@@ -69,11 +67,11 @@ services:
       - bitcored
 
   insight:
-    image: insight-previous
+    image: insight
     build:
       context: .
-      dockerfile: ./Dockerfile.insight-previous.btx
-    container_name: insight-previous
+      dockerfile: ./Dockerfile.insight.btx
+    container_name: insight
     restart: always
     networks:
       insight-net:
@@ -84,13 +82,9 @@ services:
       - "ENV=prod"
       - "CHAIN=BTX"
       - "NETWORK=mainnet"
-      - "API_PREFIX=http://10.140.222.239:3000/api"
+      - "API_PREFIX=http://46.38.243.55:3000/api"
     depends_on:
       - bitcore-node
-
-#volumes:
-#  bitcored-storage:
-#  mongodb-storage:
 
 networks:
   insight-net:

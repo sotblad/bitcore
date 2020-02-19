@@ -7,4 +7,5 @@ ENV CHAIN=BTX
 ENV NETWORK=mainnet
 ENV API_PREFIX=http://localhost:3000/api
 
-CMD ["npm", "--prefix=./packages/insight-previous", "start"]
+CMD ["npm", "--prefix=./packages/insight", "start"]
+#CMD ["npm", "start", "insight-previous"]

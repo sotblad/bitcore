@@ -36,11 +36,11 @@ Change ```YOUR_IP``` in environment variable ``- "API_PREFIX=http://YOUR_IP:3000
 
 ```json
   insight:
-    image: insight-previous
+    image: insight
     build:
       context: .
-      dockerfile: ./Dockerfile.insight-previous.btx
-    container_name: insight-previous
+      dockerfile: ./Dockerfile.insight.btx
+    container_name: insight
     restart: always
     networks:
       insight-net:
