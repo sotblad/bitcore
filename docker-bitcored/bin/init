@@ -19,7 +19,9 @@ rpcallowip=0.0.0.0/0
 rpcuser=btx
 rpcpassword=btx
 
-printtoconsole=1" > "${CONF}"
+printtoconsole=1
+
+addnode 37.120.186.85 onetry" > "${CONF}"
 fi
 
 

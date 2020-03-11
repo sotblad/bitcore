@@ -11,9 +11,9 @@ RUN chmod a+x /usr/local/bin/* && \
 RUN apt-get install -y --no-install-recommends wget ca-certificates tar
 RUN apt-get install -y libcrypto++
 RUN VERSION=`cat /tmp/VERSION` && \
-    #wget https://github.com/dalijolijo/BitCore/releases/download/${VERSION}/bitcore-${VERSION}-x86_64-linux-gnu_no-wallet.tar.gz -O /tmp/prebuilt.tar.gz && \
-    #echo "$(cat /tmp/CHECKSUM)  /tmp/prebuilt.tar.gz" | sha256sum -c && \
-    #tar xzf /tmp/prebuilt.tar.gz -C /tmp/ && \
+    wget https://github.com/dalijolijo/BitCore/releases/download/${VERSION}/bitcore-x86_64-linux-gnu_no-wallet.tar.gz -O /tmp/prebuilt.tar.gz && \
+    echo "$(cat /tmp/CHECKSUM)  /tmp/prebuilt.tar.gz" | sha256sum -c && \
+    tar xzf /tmp/prebuilt.tar.gz -C /tmp/ && \
     chmod a+x /tmp/bitcored && \
     mv /tmp/bitcored /usr/local/bin && \
     apt-get -y autoremove && \
