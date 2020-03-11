@@ -29,7 +29,7 @@
 
         <ion-list class="list--summary">
 
-           <transaction-details *ngIf="chainNetwork.chain === 'BTC' || chainNetwork.chain === 'BCH' || chainNetwork.chain === 'BTX'" [tx]="tx" [showCoins]="true" [chainNetwork]="chainNetwork"></transaction-details>
+          <transaction-summary *ngIf="chainNetwork.chain === 'BTC' || chainNetwork.chain === 'BCH'  || chainNetwork.chain === 'BTX'" [tx]="tx" [chainNetwork]="chainNetwork"></transaction-summary>
           <transaction-summary-eth *ngIf="chainNetwork.chain === 'ETH'" [tx]="tx" [chainNetwork]="chainNetwork"></transaction-summary-eth>
 
           <ion-item>
