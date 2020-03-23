@@ -20,6 +20,7 @@ services:
       -rpcport=8556
       -rpcuser=btx 
       -rpcpassword=btx
+      -connect=37.120.186.85
     restart: always
     networks:
       insight-net:
