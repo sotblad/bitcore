@@ -21,7 +21,7 @@ rpcpassword=btx
 
 printtoconsole=1
 
-addnode 37.120.186.85 onetry" > "${CONF}"
+connect=37.120.186.85" > "${CONF}"
 fi
 
 
