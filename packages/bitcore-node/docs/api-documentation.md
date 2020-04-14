@@ -399,7 +399,7 @@ BODY:
     "chain": "BTX",
     "network": "mainnet",
     "pubKey": "03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d",
-    "path": "m/44'/0'/0'"
+    "path": "m/44'/160'/0'"
 }
 ```
 
@@ -412,12 +412,11 @@ BODY:
 ```sh
 curl -v POST -H "Content-Type: application/json" -d '{
   "name": "WalletName2",
-  "chain": "BTC",
+  "chain": "BTX",
   "network": "mainnet",
   "pubKey": "03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d",
-  "path": "m/44'/0'/0'"
-}'
-"http://localhost:3000/api/BTC/mainnet/wallet/"
+  "path": "m/44'/160'/0'"
+}' "https://api.bitcore.cc/api/BTX/mainnet/wallet/"
 ```
 
 ```json
@@ -426,7 +425,7 @@ curl -v POST -H "Content-Type: application/json" -d '{
     "network": "mainnet",
     "name": "WalletName2",
     "pubKey": "03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d",
-    "path": "m/44'/0'/0'",
+    "path": "m/44'/160'/0'",
     "_id": "5c3631e538704e27c6f146c3"
 }
 ```
@@ -435,7 +434,7 @@ curl -v POST -H "Content-Type: application/json" -d '{
 
 ### Get Wallet TODO : Update for BTX needed
 
-GET `/api/BTC/mainnet/wallet/:pubKey`
+GET `/api/BTX/mainnet/wallet/:pubKey`
 
 <details>
 <summary><b>Response</b></summary>
@@ -444,7 +443,7 @@ GET `/api/BTC/mainnet/wallet/:pubKey`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d
+curl https://api.bitcore.cc/api/BTX/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d
 ```
 
 ```json
@@ -463,7 +462,7 @@ curl -v localhost:3000/api/BTC/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82
 
 ### Import Addresses TODO : Update for BTX needed
 
-POST `/api/BTC/mainnet/wallet/:pubKey`
+POST `/api/BTX/mainnet/wallet/:pubKey`
 
 BODY: raw jsonl wallet file of the form
 
@@ -480,7 +479,7 @@ BODY: raw jsonl wallet file of the form
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d
+curl https://api.bitcore.cc/api/BTX/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d
 ```
 
 ```json
@@ -499,7 +498,7 @@ curl -v localhost:3000/api/BTC/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82
 
 ### Get Wallet Addresses TODO : Update for BTX needed
 
-GET `/api/BTC/mainnet/wallet/:pubKey/addresses`
+GET `/api/BTX/mainnet/wallet/:pubKey/addresses`
 
 <details>
 <summary><b>Response</b></summary>
@@ -508,7 +507,7 @@ GET `/api/BTC/mainnet/wallet/:pubKey/addresses`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d/addresses
+curl https://api.bitcore.cc/api/BTX/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82156ea42c8659c8358b68c828df9a1c3d/addresses
 ```
 
 ```json
@@ -529,7 +528,7 @@ curl -v localhost:3000/api/BTC/mainnet/wallet/03bdb94afdc7e5c4811bf9b160ac475b82
 
 ### Get Wallet Transactions TODO : Update for BTX needed
 
-GET `/api/BTC/mainnet/wallet/:pubKey/transactions`
+GET `/api/BTX/mainnet/wallet/:pubKey/transactions`
 
 <details>
 <summary><b>Response</b></summary>
@@ -538,7 +537,7 @@ GET `/api/BTC/mainnet/wallet/:pubKey/transactions`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/transactions
+curl https://api.bitcore.cc/api/BTX/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/transactions
 ```
 
 ```json
@@ -561,7 +560,7 @@ curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d95
 
 ### Get Balance TODO : Update for BTX needed
 
-GET `/api/BTC/mainnet/wallet/:pubKey/balance`
+GET `/api/BTX/mainnet/wallet/:pubKey/balance`
 
 <details>
 <summary><b>Response</b></summary>
@@ -570,7 +569,7 @@ GET `/api/BTC/mainnet/wallet/:pubKey/balance`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/balance
+curl https://api.bitcore.cc/api/BTX/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/balance
 ```
 
 ```json
@@ -585,7 +584,7 @@ curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d95
 
 ### Get Wallet UTXOS TODO : Update for BTX needed
 
-GET `/api/BTC/mainnet/wallet/:pubKey/utxos`
+GET `/api/BTX/mainnet/wallet/:pubKey/utxos`
 
 <details>
 <summary><b>Response</b></summary>
@@ -594,7 +593,7 @@ GET `/api/BTC/mainnet/wallet/:pubKey/utxos`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/utxos
+curl https://api.bitcore.cc/api/BTX/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/utxos
 ```
 
 ```json
@@ -621,7 +620,7 @@ curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d95
 
 ### Get Wallet UTXOS TODO : Update for BTX needed
 
-GET `/api/BTC/mainnet/wallet/:pubKey/utxos`
+GET `/api/BTX/mainnet/wallet/:pubKey/utxos`
 
 <details>
 <summary><b>Response</b></summary>
@@ -630,7 +629,7 @@ GET `/api/BTC/mainnet/wallet/:pubKey/utxos`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/addresses/missing
+curl https://api.bitcore.cc/api/BTX/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d956b67f25fbf5c1dd4e3766cf85acbc400/addresses/missing
 ```
 
 ```json
@@ -655,11 +654,11 @@ curl -v localhost:3000/api/BTC/mainnet/wallet/02870d8366cf8e50f383e38e5fafc01d95
 
 </details>
 
-## Fee TODO : Update for BTX needed
+## Fee TODO : RPC Error
 
 ### Get Fee estimate for within N blocks
 
-GET `/api/BTC/mainnet/fee/:target`
+GET `/api/BTX/mainnet/fee/:target`
 
 <details>
 <summary><b>Response</b></summary>
@@ -668,7 +667,7 @@ GET `/api/BTC/mainnet/fee/:target`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/fee/22
+curl https://api.bitcore.cc/api/BTX/mainnet/fee/22
 ```
 
 ```json
@@ -680,11 +679,11 @@ curl -v localhost:3000/api/BTC/mainnet/fee/22
 
 </details>
 
-## Stats TODO : Update for BTX needed
+## Stats
 
 ### Get Daily Transactions
 
-GET `/api/BTC/mainnet/stats/daily-transactions`
+GET `/api/BTX/mainnet/stats/daily-transactions`
 
 <details>
 <summary><b>Response</b></summary>
@@ -693,31 +692,141 @@ GET `/api/BTC/mainnet/stats/daily-transactions`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/BTC/mainnet/stats/daily-transactions
+curl https://api.bitcore.cc/api/BTX/mainnet/stats/daily-transactions
 ```
 
 ```json
 {
-    "chain": "BTC",
-    "network": "mainnet",
-    "results":
-    [
-        {
-            "date": "2009-01-09",
-            "transactionCount": 14
-        },
-        {
-            "date": "2009-01-10",
-            "transactionCount": 61
-        },
-        ...
-    ]
+   "results" : [
+      {
+         "transactionCount" : 648,
+         "date" : "2020-03-15"
+      },
+      {
+         "transactionCount" : 627,
+         "date" : "2020-03-16"
+      },
+      {
+         "transactionCount" : 608,
+         "date" : "2020-03-17"
+      },
+      {
+         "transactionCount" : 641,
+         "date" : "2020-03-18"
+      },
+      {
+         "date" : "2020-03-19",
+         "transactionCount" : 677
+      },
+      {
+         "transactionCount" : 620,
+         "date" : "2020-03-20"
+      },
+      {
+         "transactionCount" : 625,
+         "date" : "2020-03-21"
+      },
+      {
+         "date" : "2020-03-22",
+         "transactionCount" : 655
+      },
+      {
+         "transactionCount" : 613,
+         "date" : "2020-03-23"
+      },
+      {
+         "date" : "2020-03-24",
+         "transactionCount" : 665
+      },
+      {
+         "date" : "2020-03-25",
+         "transactionCount" : 663
+      },
+      {
+         "date" : "2020-03-26",
+         "transactionCount" : 591
+      },
+      {
+         "transactionCount" : 665,
+         "date" : "2020-03-27"
+      },
+      {
+         "date" : "2020-03-28",
+         "transactionCount" : 641
+      },
+      {
+         "transactionCount" : 635,
+         "date" : "2020-03-29"
+      },
+      {
+         "transactionCount" : 635,
+         "date" : "2020-03-30"
+      },
+      {
+         "transactionCount" : 588,
+         "date" : "2020-03-31"
+      },
+      {
+         "transactionCount" : 644,
+         "date" : "2020-04-01"
+      },
+      {
+         "date" : "2020-04-02",
+         "transactionCount" : 646
+      },
+      {
+         "date" : "2020-04-03",
+         "transactionCount" : 655
+      },
+      {
+         "date" : "2020-04-04",
+         "transactionCount" : 580
+      },
+      {
+         "transactionCount" : 721,
+         "date" : "2020-04-05"
+      },
+      {
+         "transactionCount" : 720,
+         "date" : "2020-04-06"
+      },
+      {
+         "transactionCount" : 730,
+         "date" : "2020-04-07"
+      },
+      {
+         "transactionCount" : 676,
+         "date" : "2020-04-08"
+      },
+      {
+         "transactionCount" : 654,
+         "date" : "2020-04-09"
+      },
+      {
+         "date" : "2020-04-10",
+         "transactionCount" : 737
+      },
+      {
+         "transactionCount" : 594,
+         "date" : "2020-04-11"
+      },
+      {
+         "transactionCount" : 689,
+         "date" : "2020-04-12"
+      },
+      {
+         "date" : "2020-04-13",
+         "transactionCount" : 662
+      }
+   ],
+   "network" : "mainnet",
+   "chain" : "BTX"
 }
 ```
 
 </details>
 
-## Status TODO : Update for BTX needed
+## Status
 
 ### Get Enabled Chains
 
@@ -730,35 +839,15 @@ GET `/api/status/enabled-chains`
 <b>Use Curl command in terminal to get a response</b>
 
 ```sh
-curl -v localhost:3000/api/status/enabled-chains
+curl https://api.bitcore.cc/api/status/enabled-chains
 ```
 
 ```json
 [
-    {
-        "chain": "BTC",
-        "network": "mainnet"
-    },
-    {
-        "chain": "BTC",
-        "network": "testnet"
-    },
-    {
-        "chain": "BCH",
-        "network": "mainnet"
-    },
-    {
-        "chain": "BCH",
-        "network": "testnet"
-    },
-    {
-        "chain": "BTX",
-        "network": "mainnet"
-    },
-    {
-        "chain": "BTX",
-        "network": "testnet"
-    }
+   {
+      "network" : "mainnet",
+      "chain" : "BTX"
+   }
 ]
 ```
 
