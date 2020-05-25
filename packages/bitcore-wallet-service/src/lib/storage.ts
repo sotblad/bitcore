@@ -15,7 +15,7 @@ import {
   Wallet
 } from './model';
 
-const BCHAddressTranslator = require('./bchaddresstranslator'); // only for migration
+const BTXAddressTranslator = require('./btxaddresstranslator'); // only for migration
 const $ = require('preconditions').singleton();
 let log = require('npmlog');
 log.debug = log.verbose;
@@ -602,7 +602,7 @@ export class Storage {
       cursor.pause();
       let x;
       try {
-        x = BCHAddressTranslator.translate(doc.address, 'cashaddr');
+        x = BTXAddressTranslator.translate(doc.address, 'cashaddr');
       } catch (e) {
         return cb(e);
       }

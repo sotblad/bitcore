@@ -48,6 +48,14 @@ module.exports = {
         url: 'https://api.bitcore.io',
       },
     },
+    btx: {
+      livenet: {
+        url: 'https://api.bitcore.cc',
+      },
+      testnet: {
+        url: 'https://api.bitcore.cc',
+      },
+    },
     eth: {
       livenet: {
         url: 'https://api-eth.bitcore.io',
