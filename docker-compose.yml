@@ -9,24 +9,21 @@ services:
     container_name: bitcored
     command:
       -whitebind=172.21.0.10:8555
-      -whitelist=172.21.0.0/24
-      -whitelist=127.0.0.1
+      -whitelist=172.21.0.13
       -txindex=1
       -maxconnections=100
       -rpcbind=172.21.0.10
       -rpcallowip=172.21.0.0/24
-      -rpcallowip=127.0.0.1
       -port=8555
       -rpcport=8556
       -rpcuser=btx 
       -rpcpassword=btx
-      -connect=37.120.186.85
     restart: always
     networks:
       insight-net:
         ipv4_address: 172.21.0.10
     ports:
-      - 8555:8555 
+      - 8555:8555
     expose:
       - 8555
       - 8556 
@@ -78,12 +75,14 @@ services:
       insight-net:
         ipv4_address: 172.21.0.14
     ports:
-      - 80:80
+      #- 80:80
+      - 8080:5000
     environment:
       - "ENV=prod"
       - "CHAIN=BTX"
       - "NETWORK=mainnet"
-      - "API_PREFIX=http://46.38.243.55:3000/api"
+      - "API_PREFIX=https://api.bitcore.cc/api"
+      #- "API_PREFIX=http://46.38.243.55:3000/api"
     depends_on:
       - bitcore-node
 
